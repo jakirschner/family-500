@@ -12,7 +12,7 @@
 
   <div id="app" class="table-app">
     <header class="top-bar">
-      <div class="bid-panel">Bid: <span id="bid-display">— set bid —</span></div>
+      <button class="bid-panel" id="btn-bid">Bid: <span id="bid-display">— set bid —</span></button>
       <div class="trick-counters">
         NS <span id="tc-ns">0</span> · EW <span id="tc-ew">0</span>
       </div>
@@ -55,8 +55,30 @@
         <button id="btn-ns-took">NS took</button>
         <button id="btn-ew-took">EW took</button>
       </div>
-      <button id="btn-review">Review Last Trick</button>
+      <div>
+        <button id="btn-review">Review Last Trick</button>
+        <button id="btn-end-hand">End Hand</button>
+      </div>
     </footer>
+
+    <aside class="scorecard" id="scorecard">
+      <header>
+        <h3>Scorecard</h3>
+        <div class="target">first to 1000</div>
+      </header>
+      <div class="score-totals">
+        <div class="team-total ns"><span class="label">NS</span> <span id="total-ns">0</span></div>
+        <div class="team-total ew"><span class="label">EW</span> <span id="total-ew">0</span></div>
+      </div>
+      <div class="score-rows-wrap">
+        <table class="score-rows">
+          <thead>
+            <tr><th>Deal</th><th>Bid</th><th>NS</th><th>EW</th></tr>
+          </thead>
+          <tbody id="score-body"></tbody>
+        </table>
+      </div>
+    </aside>
 
     <aside class="seat-picker" id="seat-picker">
       <h3>Pick a seat</h3>
@@ -65,6 +87,57 @@
         <button data-seat="E">East</button>
         <button data-seat="S">South</button>
         <button data-seat="W">West</button>
+      </div>
+    </aside>
+
+    <aside class="bid-modal" id="bid-modal">
+      <div class="modal-card">
+        <h3>Set the winning bid</h3>
+        <div class="bid-grid">
+          <label>Bidder
+            <select id="bid-seat">
+              <option value="N">N</option><option value="E">E</option>
+              <option value="S">S</option><option value="W">W</option>
+            </select>
+          </label>
+          <label>Tricks
+            <select id="bid-tricks">
+              <option>7</option><option>8</option><option>9</option><option>10</option>
+            </select>
+          </label>
+          <label>Suit
+            <select id="bid-suit">
+              <option value="S">♠ Spades</option>
+              <option value="C">♣ Clubs</option>
+              <option value="D">♦ Diamonds</option>
+              <option value="H">♥ Hearts</option>
+              <option value="NT">NT No Trump</option>
+            </select>
+          </label>
+        </div>
+        <div class="modal-value">Value: <span id="bid-value">140</span> pts</div>
+        <div class="modal-buttons">
+          <button id="btn-bid-cancel">Cancel</button>
+          <button id="btn-bid-confirm" class="primary">Set bid</button>
+        </div>
+      </div>
+    </aside>
+
+    <aside class="end-modal" id="end-modal">
+      <div class="modal-card">
+        <h3>End of hand</h3>
+        <div id="end-bid-summary" class="muted"></div>
+        <label>Tricks bidding team took
+          <select id="end-tricks">
+            <option>0</option><option>1</option><option>2</option><option>3</option>
+            <option>4</option><option>5</option><option>6</option><option>7</option>
+            <option>8</option><option>9</option><option>10</option>
+          </select>
+        </label>
+        <div class="modal-buttons">
+          <button id="btn-end-cancel">Cancel</button>
+          <button id="btn-end-confirm" class="primary">Record</button>
+        </div>
       </div>
     </aside>
   </div>

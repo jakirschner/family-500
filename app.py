@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, abort, ses
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
 from rooms import store, deal_new_hand, Player, TEAM_OF, SEATS
+from scoring import score_hand, BID_VALUES
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-change-me')
@@ -129,6 +130,53 @@ def on_take_trick(data):
     room.tricks_taken[team] = room.tricks_taken.get(team, 0) + 1
     room.last_trick = dict(room.trick)
     room.trick = {}
+    _broadcast_state(room)
+
+
+@socketio.on('set_bid')
+def on_set_bid(data):
+    code = (data or {}).get('code', '').upper()
+    seat = (data or {}).get('seat')
+    tricks = (data or {}).get('tricks')
+    suit = (data or {}).get('suit')
+    room = store.get(code)
+    if not room or seat not in SEATS or (tricks, suit) not in BID_VALUES:
+        emit('error_msg', {'msg': 'Invalid bid.'})
+        return
+    room.bid = {'seat': seat, 'tricks': tricks, 'suit': suit, 'value': BID_VALUES[(tricks, suit)]}
+    _broadcast_state(room)
+
+
+@socketio.on('end_hand')
+def on_end_hand(data):
+    code = (data or {}).get('code', '').upper()
+    bidder_tricks_taken = (data or {}).get('bidder_tricks_taken')
+    room = store.get(code)
+    if not room or not room.bid:
+        emit('error_msg', {'msg': 'No bid set for this hand.'})
+        return
+    if not isinstance(bidder_tricks_taken, int) or not 0 <= bidder_tricks_taken <= 10:
+        emit('error_msg', {'msg': 'Bidder tricks must be 0..10.'})
+        return
+    bidder_team = TEAM_OF[room.bid['seat']]
+    deltas = score_hand(room.bid['tricks'], room.bid['suit'], bidder_team, bidder_tricks_taken)
+    room.score['NS'] += deltas['NS']
+    room.score['EW'] += deltas['EW']
+    room.history.append({
+        'dealer': room.dealer,
+        'bid': room.bid,
+        'bidder_team': bidder_team,
+        'bidder_tricks_taken': bidder_tricks_taken,
+        'delta': deltas,
+        'totals': dict(room.score),
+    })
+    # clear per-hand state, rotate dealer, keep totals
+    room.bid = None
+    room.trick = {}
+    room.last_trick = {}
+    room.tricks_taken = {'NS': 0, 'EW': 0}
+    room.hands = {}
+    room.dealer = SEATS[(SEATS.index(room.dealer) + 1) % 4] if room.dealer else 'S'
     _broadcast_state(room)
 
 

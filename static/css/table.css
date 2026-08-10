@@ -56,8 +56,74 @@ body.lobby {
 .table-app {
   display: grid;
   grid-template-rows: 60px 1fr 80px;
+  grid-template-columns: 1fr 300px;
   height: 100vh;
 }
+.top-bar { grid-column: 1 / span 2; }
+.table-area { grid-column: 1; }
+.bottom-bar { grid-column: 1 / span 2; }
+.scorecard {
+  grid-column: 2;
+  grid-row: 2;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 16px;
+  overflow-y: auto;
+  border-left: 3px solid rgba(0,0,0,0.35);
+}
+.scorecard header { display: flex; align-items: baseline; justify-content: space-between; }
+.scorecard h3 { margin: 0; font-size: 26px; color: var(--gold-ink); }
+.scorecard .target { font-size: 13px; color: #7a6a3a; }
+.score-totals {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; margin: 12px 0 16px;
+}
+.team-total {
+  border: 2px solid rgba(0,0,0,0.15); border-radius: 8px;
+  padding: 10px 12px; display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 22px; font-weight: 700;
+}
+.team-total.ns { background: rgba(242,209,102,0.25); }
+.team-total.ew { background: rgba(242,158,128,0.20); }
+.team-total .label { font-size: 14px; font-weight: 600; color: #444; }
+.score-rows { width: 100%; border-collapse: collapse; font-size: 14px; }
+.score-rows th, .score-rows td { padding: 6px 4px; text-align: left; }
+.score-rows th { color: #7a6a3a; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.15); }
+.score-rows td.v { text-align: right; font-variant-numeric: tabular-nums; }
+.score-rows td.v.neg { color: #a1231b; }
+.score-rows td.v.ns { font-weight: 700; }
+
+/* ---------- Bid / End Hand modals ---------- */
+.bid-modal, .end-modal {
+  position: fixed; inset: 0; z-index: 30;
+  background: rgba(0,0,0,0.6);
+  display: none; place-items: center;
+}
+.bid-modal.show, .end-modal.show { display: grid; }
+.modal-card {
+  background: var(--paper); color: var(--ink);
+  padding: 24px 28px; border-radius: 12px;
+  min-width: 360px; max-width: 90vw;
+  box-shadow: var(--shadow);
+}
+.modal-card h3 { margin: 0 0 12px; color: var(--gold-ink); }
+.modal-card label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+.modal-card select {
+  padding: 8px 10px; font-size: 16px;
+  border: 1px solid #ccc; border-radius: 6px;
+}
+.bid-grid { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 12px; }
+.modal-value { margin: 8px 0 16px; font-size: 18px; color: var(--gold-ink); font-weight: 700; }
+.modal-buttons { display: flex; justify-content: flex-end; gap: 8px; }
+.modal-buttons button {
+  padding: 10px 18px; font-size: 14px; font-weight: 600;
+  border: none; border-radius: 8px; cursor: pointer;
+  background: #eee; color: var(--ink);
+}
+.modal-buttons button.primary { background: var(--gold); }
+.muted { color: #666; margin-bottom: 12px; font-size: 14px; }
+
+.bid-panel { border: none; font: inherit; cursor: pointer; }
 
 .top-bar {
   display: flex; align-items: center; justify-content: space-between;

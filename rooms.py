@@ -33,6 +33,7 @@ class Room:
     dealer: str | None = None
     score: dict = field(default_factory=lambda: {'NS': 0, 'EW': 0})
     history: list = field(default_factory=list)  # hand-by-hand scoring log
+    bid: dict | None = None  # {'seat': 'S', 'tricks': 8, 'suit': 'H'}
 
     def seat_of(self, sid):
         p = self.players.get(sid)
@@ -62,6 +63,7 @@ class Room:
             'tricks_taken': self.tricks_taken,
             'score': self.score,
             'history': self.history,
+            'bid': self.bid,
         }
 
 
@@ -101,6 +103,7 @@ def deal_new_hand(room: Room):
     room.trick = {}
     room.last_trick = {}
     room.tricks_taken = {'NS': 0, 'EW': 0}
+    room.bid = None
     # rotate dealer (or set first dealer)
     if room.dealer is None:
         room.dealer = 'S'
