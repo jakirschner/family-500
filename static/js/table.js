@@ -37,6 +37,7 @@ socket.on('error_msg', (data) => {
 });
 
 let state = null;
+let selectedCardId = null;
 
 socket.on('state', (s) => {
   state = s;
@@ -107,8 +108,13 @@ function renderHand() {
   const container = document.getElementById('hand-bottom');
   container.innerHTML = '';
   if (!state.my_seat) return;
+  const handIds = new Set(state.my_hand.map(c => `${c.rank}${c.suit}`));
+  if (selectedCardId && !handIds.has(selectedCardId)) selectedCardId = null;
   for (const card of state.my_hand) {
-    container.appendChild(cardEl(card, { playable: true }));
+    const id = `${card.rank}${card.suit}`;
+    const el = cardEl(card, { playable: true });
+    if (id === selectedCardId) el.classList.add('selected');
+    container.appendChild(el);
   }
 }
 
@@ -137,8 +143,17 @@ function renderTrick() {
     slot.innerHTML = '';
     const seat = pos[p];
     const c = state.trick && state.trick[seat];
-    if (c) slot.appendChild(cardEl(c, { playable: false }));
-    else {
+    if (c) {
+      const el = cardEl(c, { playable: false });
+      if (p === 'bottom' && state.my_seat) {
+        el.classList.add('recallable');
+        el.title = 'Click to take back';
+        el.addEventListener('click', () => {
+          socket.emit('recall_card', { code });
+        });
+      }
+      slot.appendChild(el);
+    } else {
       const label = document.createElement('span');
       label.className = 'seat-label';
       label.textContent = seat;
@@ -174,9 +189,17 @@ function cardEl(card, { playable }) {
     el.innerHTML = `<div class="rank">${card.rank}</div><div class="suit">${SUIT_GLYPH[card.suit]}</div>`;
   }
   if (playable) {
+    const id = `${card.rank}${card.suit}`;
     el.addEventListener('click', () => {
-      const id = `${card.rank}${card.suit}`;
-      socket.emit('play_card', { code, card_id: id });
+      if (selectedCardId === id) {
+        selectedCardId = null;
+        socket.emit('play_card', { code, card_id: id });
+      } else {
+        const prev = document.querySelector('#hand-bottom .card.selected');
+        if (prev) prev.classList.remove('selected');
+        selectedCardId = id;
+        el.classList.add('selected');
+      }
     });
   }
   return el;

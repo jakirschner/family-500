@@ -197,6 +197,8 @@ html, body.table-body { height: 100%; overflow: hidden; }
   transition: transform 80ms ease;
 }
 .card:hover { transform: translateY(-6px); }
+.card.selected,
+.card.selected:hover { transform: translateY(-25px); box-shadow: 0 8px 14px rgba(0,0,0,0.35); }
 .card.suit-H, .card.suit-D { color: #b02a2a; }
 .card.suit-S, .card.suit-C { color: #111; }
 .card .rank { font-size: clamp(16px, 1.8vw, 22px); font-weight: 700; line-height: 1; }
@@ -226,6 +228,8 @@ html, body.table-body { height: 100%; overflow: hidden; }
 }
 .trick-slot .card { cursor: default; }
 .trick-slot .card:hover { transform: none; }
+.trick-slot .card.recallable { cursor: pointer; }
+.trick-slot .card.recallable:hover { transform: translateY(-4px); box-shadow: 0 6px 10px rgba(0,0,0,0.3); }
 .trick-slot .seat-label {
   position: absolute; font-size: 11px; color: rgba(255,255,255,0.5);
 }

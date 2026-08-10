@@ -117,6 +117,20 @@ def on_play_card(data):
     _broadcast_state(room)
 
 
+@socketio.on('recall_card')
+def on_recall_card(data):
+    code = (data or {}).get('code', '').upper()
+    room = store.get(code)
+    if not room:
+        return
+    seat = room.seat_of(request.sid)
+    if not seat or seat not in room.trick:
+        return
+    card = room.trick.pop(seat)
+    room.hands.setdefault(seat, []).append(card)
+    _broadcast_state(room)
+
+
 @socketio.on('take_trick')
 def on_take_trick(data):
     code = (data or {}).get('code', '').upper()
