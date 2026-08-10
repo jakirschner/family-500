@@ -49,11 +49,28 @@ socket.on('last_trick', ({ last_trick }) => {
     alert('No previous trick to review yet.');
     return;
   }
-  const rows = SEATS.map(seat => {
+  const pos = positions(state && state.my_seat);
+  for (const p of ['top', 'left', 'right', 'bottom']) {
+    const slot = document.querySelector(`#review-modal .review-slot[data-pos="${p}"]`);
+    if (!slot) continue;
+    slot.innerHTML = '';
+    slot.classList.remove('empty');
+    const seat = pos[p];
+    const tag = document.createElement('div');
+    tag.className = 'seat-tag';
+    tag.textContent = seat;
+    slot.appendChild(tag);
     const c = last_trick[seat];
-    return `${seat}: ${c ? c.rank + (SUIT_GLYPH[c.suit] || '') : '—'}`;
-  }).join('\n');
-  alert('Last trick:\n' + rows);
+    if (c) {
+      slot.appendChild(cardEl(c, { playable: false }));
+    } else {
+      slot.classList.add('empty');
+      const dash = document.createElement('div');
+      dash.textContent = '—';
+      slot.appendChild(dash);
+    }
+  }
+  document.getElementById('review-modal').classList.add('show');
 });
 
 function render() {
@@ -232,6 +249,9 @@ document.getElementById('btn-ew-took').addEventListener('click', () => {
 });
 document.getElementById('btn-review').addEventListener('click', () => {
   socket.emit('review_last_trick', { code });
+});
+document.getElementById('btn-review-close').addEventListener('click', () => {
+  document.getElementById('review-modal').classList.remove('show');
 });
 
 // ------- bid modal -------

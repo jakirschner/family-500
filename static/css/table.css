@@ -96,12 +96,37 @@ html, body.table-body { height: 100%; overflow: hidden; }
 .score-rows td.v.ns { font-weight: 700; }
 
 /* ---------- Bid / End Hand modals ---------- */
-.bid-modal, .end-modal {
+.bid-modal, .end-modal, .review-modal {
   position: fixed; inset: 0; z-index: 30;
   background: rgba(0,0,0,0.6);
   display: none; place-items: center;
 }
-.bid-modal.show, .end-modal.show { display: grid; }
+.bid-modal.show, .end-modal.show, .review-modal.show { display: grid; }
+.review-card { min-width: 380px; }
+.review-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 10px;
+  margin: 12px 0 20px;
+  justify-items: center;
+  align-items: center;
+}
+.review-grid > .review-slot[data-pos="top"]    { grid-column: 2; grid-row: 1; }
+.review-grid > .review-slot[data-pos="left"]   { grid-column: 1; grid-row: 2; }
+.review-grid > .review-slot[data-pos="right"]  { grid-column: 3; grid-row: 2; }
+.review-grid > .review-slot[data-pos="bottom"] { grid-column: 2; grid-row: 3; }
+.review-slot { display: grid; justify-items: center; gap: 4px; }
+.review-slot .seat-tag {
+  font-size: 12px; font-weight: 700; color: var(--gold-ink);
+  letter-spacing: 1px;
+}
+.review-slot .card { cursor: default; box-shadow: var(--shadow); }
+.review-slot .card:hover { transform: none; }
+.review-slot.empty {
+  color: #999; font-size: 12px; font-style: italic;
+  min-height: 96px; display: grid; place-items: center;
+}
 .modal-card {
   background: var(--paper); color: var(--ink);
   padding: 24px 28px; border-radius: 12px;
@@ -133,9 +158,12 @@ html, body.table-body { height: 100%; overflow: hidden; }
   background: var(--felt-dark);
 }
 .bid-panel {
-  background: rgba(0,0,0,0.25); padding: 8px 16px; border-radius: 20px;
-  font-size: 14px;
+  background: var(--paper); color: var(--ink);
+  padding: 8px 16px; border-radius: 20px;
+  font-size: 14px; font-weight: 600;
+  box-shadow: var(--shadow);
 }
+.bid-panel:hover { background: var(--gold); }
 .trick-counters { font-size: 20px; font-weight: 600; color: var(--gold); }
 .top-right #room-code {
   background: var(--paper); color: var(--ink);
