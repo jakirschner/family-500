@@ -80,10 +80,19 @@ function showToast(msg, { type = 'info', duration = 3200 } = {}) {
 
 let isMuted = localStorage.getItem('muted500') === 'true';
 
+const SOUNDS = {};
+for (const name of ['shuffle', 'deal', 'playcard', 'taketrick']) {
+  const a = new Audio(`/static/sounds/${name}.mp3`);
+  a.preload = 'auto';
+  SOUNDS[name] = a;
+}
+
 function playSound(name) {
   if (isMuted) return;
-  const audio = new Audio(`/static/sounds/${name}.mp3`);
-  audio.play().catch(() => {});
+  const a = SOUNDS[name];
+  if (!a) return;
+  a.currentTime = 0;
+  a.play().catch(() => {});
 }
 
 socket.on('sound', ({ name }) => { playSound(name); });
