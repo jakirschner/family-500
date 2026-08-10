@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>500 — Lobby</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/table.css') }}">
+</head>
+<body class="lobby">
+  <main class="lobby-card">
+    <h1>500</h1>
+    <p class="tag">Family card table · game to 1000</p>
+
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+    <form method="post" action="{{ url_for('create_room') }}" class="lobby-form">
+      <label>Your name<input name="name" required maxlength="24"></label>
+      {% if passcode_required %}
+        <label>Passcode<input name="passcode" required></label>
+      {% endif %}
+      <button type="submit">Create table</button>
+    </form>
+
+    <hr>
+
+    <form method="post" action="{{ url_for('join_room_form') }}" class="lobby-form">
+      <label>Your name<input name="name" required maxlength="24"></label>
+      <label>Room code<input name="code" required maxlength="4" style="text-transform:uppercase"></label>
+      {% if passcode_required %}
+        <label>Passcode<input name="passcode" required></label>
+      {% endif %}
+      <button type="submit">Join table</button>
+    </form>
+  </main>
+</body>
+</html>

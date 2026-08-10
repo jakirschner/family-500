@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>500 — {{ code }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/table.css') }}">
+</head>
+<body class="table-body"
+      data-code="{{ code }}"
+      data-name="{{ name }}">
+
+  <div id="app" class="table-app">
+    <header class="top-bar">
+      <div class="bid-panel">Bid: <span id="bid-display">— set bid —</span></div>
+      <div class="trick-counters">
+        NS <span id="tc-ns">0</span> · EW <span id="tc-ew">0</span>
+      </div>
+      <div class="top-right">
+        <span id="room-code">{{ code }}</span>
+      </div>
+    </header>
+
+    <section class="table-area">
+      <div class="seat seat-n">
+        <div class="badge" id="seat-n-badge">N · empty</div>
+        <div class="hand-back" id="hand-n"></div>
+      </div>
+      <div class="seat seat-w">
+        <div class="badge" id="seat-w-badge">W · empty</div>
+        <div class="hand-back vertical" id="hand-w"></div>
+      </div>
+      <div class="seat seat-e">
+        <div class="badge" id="seat-e-badge">E · empty</div>
+        <div class="hand-back vertical" id="hand-e"></div>
+      </div>
+
+      <div class="trick-area">
+        <div class="trick-slot slot-n" data-seat="N"></div>
+        <div class="trick-slot slot-w" data-seat="W"></div>
+        <div class="trick-slot slot-e" data-seat="E"></div>
+        <div class="trick-slot slot-s" data-seat="S"></div>
+      </div>
+
+      <div class="seat seat-s">
+        <div class="badge you-badge" id="seat-s-badge">— pick a seat —</div>
+        <div class="hand" id="hand-s"></div>
+      </div>
+    </section>
+
+    <footer class="bottom-bar">
+      <button id="btn-deal">Deal</button>
+      <div class="trick-take">
+        Take trick:
+        <button id="btn-ns-took">NS took</button>
+        <button id="btn-ew-took">EW took</button>
+      </div>
+      <button id="btn-review">Review Last Trick</button>
+    </footer>
+
+    <aside class="seat-picker" id="seat-picker">
+      <h3>Pick a seat</h3>
+      <div class="seat-btns">
+        <button data-seat="N">North</button>
+        <button data-seat="E">East</button>
+        <button data-seat="S">South</button>
+        <button data-seat="W">West</button>
+      </div>
+    </aside>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="{{ url_for('static', filename='js/table.js') }}"></script>
+</body>
+</html>
