@@ -152,10 +152,10 @@ html, body.table-body { height: 100%; overflow: hidden; }
   min-height: 0;
   overflow: hidden;
 }
-.seat-n { grid-column: 2; grid-row: 1; justify-self: center; align-self: start; }
-.seat-w { grid-column: 1; grid-row: 2; align-self: center; }
-.seat-e { grid-column: 3; grid-row: 2; align-self: center; }
-.seat-s { grid-column: 1 / span 3; grid-row: 3; justify-self: center; align-self: end; }
+.table-area > .pos-top    { grid-column: 2; grid-row: 1; justify-self: center; align-self: start; }
+.table-area > .pos-left   { grid-column: 1; grid-row: 2; align-self: center; }
+.table-area > .pos-right  { grid-column: 3; grid-row: 2; align-self: center; }
+.table-area > .pos-bottom { grid-column: 1 / span 3; grid-row: 3; justify-self: center; align-self: end; }
 
 .badge {
   background: rgba(0,0,0,0.35); color: var(--paper);
@@ -214,10 +214,10 @@ html, body.table-body { height: 100%; overflow: hidden; }
   grid-template-rows: var(--slot) var(--slot) var(--slot);
   gap: 4px;
 }
-.slot-n { grid-column: 2; grid-row: 1; }
-.slot-w { grid-column: 1; grid-row: 2; }
-.slot-e { grid-column: 3; grid-row: 2; }
-.slot-s { grid-column: 2; grid-row: 3; }
+.trick-area > .pos-top    { grid-column: 2; grid-row: 1; }
+.trick-area > .pos-left   { grid-column: 1; grid-row: 2; }
+.trick-area > .pos-right  { grid-column: 3; grid-row: 2; }
+.trick-area > .pos-bottom { grid-column: 2; grid-row: 3; }
 .trick-slot {
   border: 2px dashed rgba(255,255,255,0.15);
   border-radius: 8px;

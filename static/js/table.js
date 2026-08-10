@@ -1,5 +1,20 @@
 const SUIT_GLYPH = { S: '♠', C: '♣', D: '♦', H: '♥', NT: 'NT' };
 const SEATS = ['N', 'E', 'S', 'W'];
+const CLOCKWISE = ['N', 'E', 'S', 'W'];
+
+function positions(mySeat) {
+  // Given the viewer's compass seat, return which compass seat sits
+  // at each visual position: bottom (viewer), left (next clockwise),
+  // top (across), right (previous clockwise).
+  const anchor = mySeat && CLOCKWISE.includes(mySeat) ? mySeat : 'S';
+  const i = CLOCKWISE.indexOf(anchor);
+  return {
+    bottom: CLOCKWISE[i],
+    left:   CLOCKWISE[(i + 1) % 4],
+    top:    CLOCKWISE[(i + 2) % 4],
+    right:  CLOCKWISE[(i + 3) % 4],
+  };
+}
 
 const BID_VALUES = {
   '7S': 140,  '7C': 160,  '7D': 180,  '7H': 200,  '7NT': 220,
@@ -70,16 +85,18 @@ function renderBid() {
 
 function renderBadges() {
   const seats = state.seats || {};
-  for (const s of SEATS) {
-    const el = document.getElementById(`seat-${s.toLowerCase()}-badge`);
+  const pos = positions(state.my_seat);
+  for (const p of ['top', 'left', 'right', 'bottom']) {
+    const el = document.getElementById(`slot-${p}-badge`);
     if (!el) continue;
-    const label = seats[s] || 'empty';
-    const dealerMark = state.dealer === s ? ' · D' : '';
-    if (s === state.my_seat) {
-      el.textContent = `YOU · ${label} · TEAM ${state.my_team}${dealerMark}`;
+    const seat = pos[p];
+    const label = seats[seat] || 'empty';
+    const dealerMark = state.dealer === seat ? ' · D' : '';
+    if (state.my_seat && p === 'bottom') {
+      el.textContent = `YOU · ${label} · ${seat} · TEAM ${state.my_team}${dealerMark}`;
     } else {
-      const teamTag = seats[s] ? ` (${teamOf(s)})` : '';
-      el.textContent = `${s} · ${label}${teamTag}${dealerMark}`;
+      const teamTag = seats[seat] ? ` (${teamOf(seat)})` : '';
+      el.textContent = `${seat} · ${label}${teamTag}${dealerMark}`;
     }
   }
 }
@@ -87,7 +104,7 @@ function renderBadges() {
 function teamOf(seat) { return (seat === 'N' || seat === 'S') ? 'NS' : 'EW'; }
 
 function renderHand() {
-  const container = document.getElementById('hand-s');
+  const container = document.getElementById('hand-bottom');
   container.innerHTML = '';
   if (!state.my_seat) return;
   for (const card of state.my_hand) {
@@ -96,11 +113,14 @@ function renderHand() {
 }
 
 function renderOpponents() {
-  for (const seat of ['N', 'E', 'W']) {
-    const el = document.getElementById(`hand-${seat.toLowerCase()}`);
+  const pos = positions(state.my_seat);
+  for (const p of ['top', 'left', 'right']) {
+    const el = document.getElementById(`hand-${p}`);
     if (!el) continue;
-    const count = (state.hand_counts && state.hand_counts[seat]) || 0;
     el.innerHTML = '';
+    if (!state.my_seat) continue;
+    const seat = pos[p];
+    const count = (state.hand_counts && state.hand_counts[seat]) || 0;
     for (let i = 0; i < count; i++) {
       const back = document.createElement('div');
       back.className = 'card-back';
@@ -110,9 +130,12 @@ function renderOpponents() {
 }
 
 function renderTrick() {
-  for (const seat of SEATS) {
-    const slot = document.querySelector(`.trick-slot[data-seat="${seat}"]`);
+  const pos = positions(state.my_seat);
+  for (const p of ['top', 'left', 'right', 'bottom']) {
+    const slot = document.querySelector(`.trick-slot[data-pos="${p}"]`);
+    if (!slot) continue;
     slot.innerHTML = '';
+    const seat = pos[p];
     const c = state.trick && state.trick[seat];
     if (c) slot.appendChild(cardEl(c, { playable: false }));
     else {
