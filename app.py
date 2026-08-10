@@ -49,6 +49,9 @@ def room_view(code):
     room = store.get(code)
     if not room:
         abort(404)
+    if not room.open_seats():
+        return render_template('lobby.html', passcode_required=bool(JOIN_PASSCODE),
+                               error=f'Room {code} is full — please start a new one.'), 403
     name = session.get('name', 'Player')
     return render_template('game.html', code=code, name=name)
 
@@ -109,7 +112,9 @@ def on_redeal(data):
     if room.trick or room.tricks_taken['NS'] > 0 or room.tricks_taken['EW'] > 0:
         emit('error_msg', {'msg': 'Cards have already been played — cannot redeal.'})
         return
+    dealer_name = _seat_name(room, room.dealer)
     deal_new_hand(room)
+    socketio.emit('info_msg', {'msg': f'{dealer_name} is redealing — no bid.'}, to=code)
     _broadcast_state(room)
 
 

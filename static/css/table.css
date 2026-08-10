@@ -202,6 +202,7 @@ html, body.table-body { height: 100%; overflow: hidden; }
   box-shadow: var(--shadow);
 }
 .bid-panel:hover { background: var(--gold); }
+.bid-panel.static { cursor: default; pointer-events: none; }
 .trick-counters { font-size: 20px; font-weight: 600; color: var(--gold); }
 .top-right #room-code {
   background: var(--paper); color: var(--ink);
@@ -340,12 +341,12 @@ html, body.table-body { height: 100%; overflow: hidden; }
 .trick-area > .center-deal.pending:hover { transform: none; }
 .trick-area > .center-deal.pending .center-deal-top { color: var(--gold); }
 
-/* Kitty modals — floating centered cards, no backdrop */
+/* Kitty modals — floating cards anchored below top bar, no backdrop */
 .kitty-modal {
   position: fixed;
-  top: 50%;
+  top: 68px;
   left: calc(50% - 140px);
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   z-index: 25;
   display: none;
   pointer-events: none;

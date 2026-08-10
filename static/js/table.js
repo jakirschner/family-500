@@ -23,6 +23,31 @@ const BID_VALUES = {
   '10S': 440, '10C': 460, '10D': 480, '10H': 500, '10NT': 520,
 };
 
+const SUIT_ORDER = { H: 0, C: 1, D: 2, S: 3 };
+const RANK_ORDER = {
+  J: 0, A: 1, K: 2, Q: 3,
+  '10': 4, '9': 5, '8': 6, '7': 7, '6': 8, '5': 9, '4': 10,
+};
+
+function cardKey(card) {
+  return `${card.rank}${card.suit}`;
+}
+
+function sortCards(cards) {
+  const copy = cards.slice();
+  copy.sort((a, b) => {
+    const aJ = a.suit === 'JOKER';
+    const bJ = b.suit === 'JOKER';
+    if (aJ && bJ) return 0;
+    if (aJ) return -1;
+    if (bJ) return 1;
+    const s = (SUIT_ORDER[a.suit] ?? 99) - (SUIT_ORDER[b.suit] ?? 99);
+    if (s !== 0) return s;
+    return (RANK_ORDER[a.rank] ?? 99) - (RANK_ORDER[b.rank] ?? 99);
+  });
+  return copy;
+}
+
 const body = document.body;
 const code = body.dataset.code;
 const name = body.dataset.name;
@@ -34,6 +59,9 @@ socket.on('connect', () => { socket.emit('hello', { code, name }); });
 socket.on('error_msg', (data) => {
   console.warn('server:', data.msg);
   showToast(data.msg, { type: 'error' });
+});
+socket.on('info_msg', (data) => {
+  showToast(data.msg, { type: 'info-strong', duration: 4000 });
 });
 
 function showToast(msg, { type = 'info', duration = 3200 } = {}) {
@@ -55,6 +83,9 @@ let selectedCardId = null;
 let selectedDiscards = new Set();  // card ids selected for discard (up to 5)
 let firstBidHandShown = null;  // hand_id we've already shown "you bid first" for
 let bidAutoOpenedHand = null;  // hand_id we've already auto-opened bid modal for
+let handOrder = [];            // card IDs in player's chosen display order
+let handOrderHandId = null;    // hand_id handOrder was last built for
+let handOrderSize = 0;         // hand size when handOrder was last built
 
 socket.on('state', (s) => {
   state = s;
@@ -328,7 +359,7 @@ function renderBid() {
     disp.textContent = '— set bid —';
   }
   const btnBid = document.getElementById('btn-bid');
-  if (btnBid) btnBid.style.display = (state.my_seat === state.dealer) ? '' : 'none';
+  if (btnBid) btnBid.classList.toggle('static', state.my_seat !== state.dealer);
 }
 
 function renderBadges() {
@@ -351,11 +382,31 @@ function renderBadges() {
 
 function teamOf(seat) { return (seat === 'N' || seat === 'S') ? 'NS' : 'EW'; }
 
+function updateHandOrder(cards) {
+  const currentIds = cards.map(cardKey);
+  const currentSet = new Set(currentIds);
+  const grew = currentIds.length > handOrderSize;
+  if (state.hand_id !== handOrderHandId || grew) {
+    // New deal or kitty collected — re-sort from scratch.
+    handOrder = sortCards(cards).map(cardKey);
+  } else {
+    // Same or shrunk — preserve arrangement, drop played/discarded cards.
+    handOrder = handOrder.filter(id => currentSet.has(id));
+    for (const id of currentIds) {
+      if (!handOrder.includes(id)) handOrder.push(id);
+    }
+  }
+  handOrderHandId = state.hand_id;
+  handOrderSize = currentIds.length;
+}
+
 function renderHand() {
   const container = document.getElementById('hand-bottom');
   container.innerHTML = '';
   if (!state.my_seat) return;
-  const handIds = new Set(state.my_hand.map(c => `${c.rank}${c.suit}`));
+  updateHandOrder(state.my_hand);
+  const cardById = new Map(state.my_hand.map(c => [cardKey(c), c]));
+  const handIds = new Set(cardById.keys());
   const discardMode = isMyDiscardTurn();
   if (discardMode) {
     selectedCardId = null;
@@ -367,8 +418,9 @@ function renderHand() {
     if (selectedCardId && !handIds.has(selectedCardId)) selectedCardId = null;
     if (state.to_play && state.to_play !== state.my_seat) selectedCardId = null;
   }
-  for (const card of state.my_hand) {
-    const id = `${card.rank}${card.suit}`;
+  for (const id of handOrder) {
+    const card = cardById.get(id);
+    if (!card) continue;
     const el = cardEl(card, { playable: true, discardMode });
     if (discardMode) {
       if (selectedDiscards.has(id)) el.classList.add('selected');
@@ -442,6 +494,7 @@ function renderScorecard() {
 
 function cardEl(card, { playable, discardMode = false }) {
   const el = document.createElement('div');
+  el.dataset.cardId = cardKey(card);
   if (card.suit === 'JOKER') {
     el.className = 'card joker';
     el.innerHTML = `<div class="rank">JKR</div><div class="suit">★</div>`;
@@ -604,3 +657,22 @@ document.getElementById('btn-end-confirm').addEventListener('click', () => {
   });
   endModal.classList.remove('show');
 });
+
+// ------- drag-to-reorder hand -------
+if (typeof Sortable !== 'undefined') {
+  const handEl = document.getElementById('hand-bottom');
+  if (handEl) {
+    Sortable.create(handEl, {
+      animation: 150,
+      draggable: '.card',
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      dragClass: 'sortable-drag',
+      onEnd: () => {
+        handOrder = Array.from(handEl.querySelectorAll('.card'))
+          .map(el => el.dataset.cardId)
+          .filter(Boolean);
+      },
+    });
+  }
+}
