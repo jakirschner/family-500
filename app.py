@@ -148,8 +148,30 @@ def on_take_trick(data):
         return
     room.tricks_taken[team] = room.tricks_taken.get(team, 0) + 1
     room.last_trick = dict(room.trick)
+    room.last_trick_taker = team
     room.trick = {}
     room.to_play = None
+    _broadcast_state(room)
+
+
+@socketio.on('undo_take_trick')
+def on_undo_take_trick(data):
+    code = (data or {}).get('code', '').upper()
+    room = store.get(code)
+    if not room:
+        return
+    if not room.last_trick or not room.last_trick_taker:
+        emit('error_msg', {'msg': 'Nothing to undo.'})
+        return
+    if room.trick:
+        emit('error_msg', {'msg': 'A new trick has already started — can\'t undo.'})
+        return
+    team = room.last_trick_taker
+    room.tricks_taken[team] = max(0, room.tricks_taken.get(team, 0) - 1)
+    room.trick = dict(room.last_trick)
+    room.last_trick = {}
+    room.last_trick_taker = None
+    room.to_play = None  # trick is full again; waiting for take-trick decision
     _broadcast_state(room)
 
 
@@ -207,7 +229,11 @@ def on_review_last_trick(data):
     room = store.get(code)
     if not room:
         return
-    emit('last_trick', {'last_trick': room.last_trick})
+    emit('last_trick', {
+        'last_trick': room.last_trick,
+        'taker': room.last_trick_taker,
+        'can_undo': bool(room.last_trick_taker) and not room.trick,
+    })
 
 
 @socketio.on('disconnect')

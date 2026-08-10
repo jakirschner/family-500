@@ -43,6 +43,7 @@ class Room:
     kitty: list = field(default_factory=list)
     trick: dict = field(default_factory=dict)    # seat -> card (current trick on table)
     last_trick: dict = field(default_factory=dict)
+    last_trick_taker: str | None = None  # 'NS' or 'EW', for undo
     tricks_taken: dict = field(default_factory=lambda: {'NS': 0, 'EW': 0})
     dealer: str | None = None
     score: dict = field(default_factory=lambda: {'NS': 0, 'EW': 0})
@@ -120,6 +121,7 @@ def deal_new_hand(room: Room):
     room.kitty = kitty
     room.trick = {}
     room.last_trick = {}
+    room.last_trick_taker = None
     room.tricks_taken = {'NS': 0, 'EW': 0}
     room.bid = None
     room.to_play = None

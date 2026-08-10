@@ -45,7 +45,7 @@ socket.on('state', (s) => {
   render();
 });
 
-socket.on('last_trick', ({ last_trick }) => {
+socket.on('last_trick', ({ last_trick, taker, can_undo }) => {
   if (!last_trick || Object.keys(last_trick).length === 0) {
     alert('No previous trick to review yet.');
     return;
@@ -71,6 +71,10 @@ socket.on('last_trick', ({ last_trick }) => {
       slot.appendChild(dash);
     }
   }
+  const takerEl = document.getElementById('review-taker');
+  takerEl.textContent = taker ? `Taken by ${taker}` : '';
+  const undoBtn = document.getElementById('btn-review-undo');
+  undoBtn.style.display = can_undo ? '' : 'none';
   document.getElementById('review-modal').classList.add('show');
 });
 
@@ -316,6 +320,10 @@ document.getElementById('btn-review').addEventListener('click', () => {
   socket.emit('review_last_trick', { code });
 });
 document.getElementById('btn-review-close').addEventListener('click', () => {
+  document.getElementById('review-modal').classList.remove('show');
+});
+document.getElementById('btn-review-undo').addEventListener('click', () => {
+  socket.emit('undo_take_trick', { code });
   document.getElementById('review-modal').classList.remove('show');
 });
 document.getElementById('btn-firstbid-ok').addEventListener('click', () => {
