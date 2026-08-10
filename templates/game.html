@@ -45,6 +45,10 @@
           <span class="center-deal-top">You're the dealer</span>
           <span class="center-deal-bot">DEAL</span>
         </button>
+        <button class="center-deal" id="center-discard">
+          <span class="center-deal-top" id="center-discard-top">You won the bid — pick 5 to discard</span>
+          <span class="center-deal-bot" id="center-discard-bot">0 / 5</span>
+        </button>
       </div>
 
       <div class="seat pos-bottom">
@@ -60,6 +64,8 @@
         <button id="btn-ew-took">EW took</button>
       </div>
       <div>
+        <button id="btn-redeal">Redeal (no bid)</button>
+        <button id="btn-review-discards">Review Discards</button>
         <button id="btn-review">Review Last Trick</button>
         <button id="btn-end-hand">End Hand</button>
       </div>
@@ -138,6 +144,17 @@
         <div class="modal-buttons">
           <button id="btn-bid-cancel">Cancel</button>
           <button id="btn-bid-confirm" class="primary">Set bid</button>
+        </div>
+      </div>
+    </aside>
+
+    <aside class="review-modal" id="discard-review-modal">
+      <div class="modal-card review-card">
+        <h3>Your discards</h3>
+        <div class="muted">The 5 cards you set aside from the kitty.</div>
+        <div class="discard-row" id="discard-review-row"></div>
+        <div class="modal-buttons">
+          <button id="btn-discard-review-close" class="primary">Close</button>
         </div>
       </div>
     </aside>

@@ -102,6 +102,23 @@ html, body.table-body { height: 100%; overflow: hidden; }
   display: none; place-items: center;
 }
 .bid-modal.show, .end-modal.show, .review-modal.show { display: grid; }
+
+/* Bid modal is a corner popover (no backdrop) so players can see their cards. */
+#bid-modal {
+  inset: auto;
+  top: 64px; left: 16px;
+  background: transparent;
+  place-items: start;
+  width: auto; height: auto;
+  pointer-events: none;
+}
+#bid-modal.show { display: block; }
+#bid-modal > .modal-card {
+  pointer-events: auto;
+  min-width: 300px;
+  border: 3px solid var(--gold);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+}
 .review-card { min-width: 380px; }
 .review-grid {
   display: grid;
@@ -290,6 +307,22 @@ html, body.table-body { height: 100%; overflow: hidden; }
 .trick-area > .center-deal .center-deal-bot {
   font-size: 26px; font-weight: 800; letter-spacing: 3px;
 }
+.trick-area > .center-deal.pending {
+  background: rgba(250,245,220,0.15);
+  color: var(--paper);
+  border-color: rgba(255,255,255,0.25);
+  cursor: default;
+  box-shadow: none;
+}
+.trick-area > .center-deal.pending:hover { transform: none; }
+.trick-area > .center-deal.pending .center-deal-top { color: var(--gold); }
+
+.discard-row {
+  display: flex; gap: 10px; justify-content: center;
+  margin: 12px 0 20px; flex-wrap: wrap;
+}
+.discard-row .card { cursor: default; box-shadow: var(--shadow); }
+.discard-row .card:hover { transform: none; }
 
 /* ---------- Toasts ---------- */
 .toast-container {

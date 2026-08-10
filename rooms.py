@@ -51,6 +51,7 @@ class Room:
     bid: dict | None = None  # {'seat': 'S', 'tricks': 8, 'suit': 'H'}
     to_play: str | None = None  # seat whose turn it is to play (None = no active turn)
     hand_id: int = 0  # increments each deal; clients use for one-shot popups
+    discarded: list = field(default_factory=list)  # winning bidder's discards (5 cards)
 
     def seat_of(self, sid):
         p = self.players.get(sid)
@@ -83,6 +84,7 @@ class Room:
             'bid': self.bid,
             'to_play': self.to_play,
             'hand_id': self.hand_id,
+            'discards_count': len(self.discarded),
         }
 
 
@@ -125,6 +127,7 @@ def deal_new_hand(room: Room):
     room.tricks_taken = {'NS': 0, 'EW': 0}
     room.bid = None
     room.to_play = None
+    room.discarded = []
     room.hand_id += 1
     # dealer is chosen by spinner when 4th seat is taken, and rotates on end_hand.
     # deal_new_hand does NOT rotate.

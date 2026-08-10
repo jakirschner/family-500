@@ -91,6 +91,25 @@ def on_take_seat(data):
     _broadcast_state(room)
 
 
+@socketio.on('redeal')
+def on_redeal(data):
+    code = (data or {}).get('code', '').upper()
+    room = store.get(code)
+    if not room:
+        return
+    if len(room.by_seat()) < 4:
+        emit('error_msg', {'msg': 'Need 4 players seated to redeal.'})
+        return
+    if room.bid:
+        emit('error_msg', {'msg': 'A bid is already set — end the hand to start a new one.'})
+        return
+    if room.trick or room.tricks_taken['NS'] > 0 or room.tricks_taken['EW'] > 0:
+        emit('error_msg', {'msg': 'Cards have already been played — cannot redeal.'})
+        return
+    deal_new_hand(room)
+    _broadcast_state(room)
+
+
 @socketio.on('deal')
 def on_deal(data):
     code = (data or {}).get('code', '').upper()
@@ -102,7 +121,8 @@ def on_deal(data):
         return
     seat = room.seat_of(request.sid)
     if room.dealer and seat != room.dealer:
-        emit('error_msg', {'msg': f"Only the dealer ({room.dealer}) can deal."})
+        dealer_name = _seat_name(room, room.dealer)
+        emit('error_msg', {'msg': f"Only the dealer ({dealer_name}) can deal."})
         return
     deal_new_hand(room)
     _broadcast_state(room)
@@ -126,7 +146,8 @@ def on_play_card(data):
         emit('error_msg', {'msg': "You've already played to this trick."})
         return
     if room.to_play and room.to_play != seat:
-        emit('error_msg', {'msg': f"It's {room.to_play}'s turn to play."})
+        turn_name = _seat_name(room, room.to_play)
+        emit('error_msg', {'msg': f"It's {turn_name}'s turn to play."})
         return
     card = hand.pop(idx)
     room.trick[seat] = card
@@ -198,9 +219,72 @@ def on_set_bid(data):
     if not room or seat not in SEATS or (tricks, suit) not in BID_VALUES:
         emit('error_msg', {'msg': 'Invalid bid.'})
         return
+    was_no_bid = room.bid is None
     room.bid = {'seat': seat, 'tricks': tricks, 'suit': suit, 'value': BID_VALUES[(tricks, suit)]}
-    room.to_play = seat
+    if was_no_bid and room.kitty:
+        # Winning bidder picks up kitty; must discard 5 before playing.
+        room.hands.setdefault(seat, []).extend(room.kitty)
+        room.kitty = []
+        room.to_play = None
+    else:
+        bidder_hand_size = len(room.hands.get(seat, []))
+        room.to_play = None if bidder_hand_size > 10 else seat
     _broadcast_state(room)
+
+
+@socketio.on('discard')
+def on_discard(data):
+    code = (data or {}).get('code', '').upper()
+    card_ids = (data or {}).get('card_ids', [])
+    room = store.get(code)
+    if not room:
+        return
+    if not room.bid:
+        emit('error_msg', {'msg': 'No bid set — cannot discard yet.'})
+        return
+    seat = room.seat_of(request.sid)
+    if seat != room.bid['seat']:
+        emit('error_msg', {'msg': 'Only the winning bidder can discard.'})
+        return
+    if not isinstance(card_ids, list) or len(card_ids) != 5:
+        emit('error_msg', {'msg': 'Must discard exactly 5 cards.'})
+        return
+    hand = room.hands.get(seat, [])
+    if len(hand) <= 10:
+        emit('error_msg', {'msg': 'Nothing to discard.'})
+        return
+    used_indices = set()
+    for cid in card_ids:
+        idx = next((i for i, c in enumerate(hand)
+                    if _card_id(c) == cid and i not in used_indices), -1)
+        if idx < 0:
+            emit('error_msg', {'msg': 'Card not in hand.'})
+            return
+        used_indices.add(idx)
+    room.discarded = [hand[i] for i in used_indices]
+    for i in sorted(used_indices, reverse=True):
+        hand.pop(i)
+    room.to_play = seat  # bidder leads the first trick
+    _broadcast_state(room)
+
+
+@socketio.on('review_discards')
+def on_review_discards(data):
+    code = (data or {}).get('code', '').upper()
+    room = store.get(code)
+    if not room:
+        return
+    seat = room.seat_of(request.sid)
+    if not room.bid or seat != room.bid['seat']:
+        emit('error_msg', {'msg': 'Only the winning bidder can review discards.'})
+        return
+    if not room.discarded:
+        emit('error_msg', {'msg': 'No discards to review.'})
+        return
+    if room.trick or room.tricks_taken['NS'] > 0 or room.tricks_taken['EW'] > 0:
+        emit('error_msg', {'msg': 'Too late — a card has already been played.'})
+        return
+    emit('discards_view', {'cards': room.discarded})
 
 
 @socketio.on('end_hand')
@@ -232,6 +316,7 @@ def on_end_hand(data):
     room.last_trick = {}
     room.tricks_taken = {'NS': 0, 'EW': 0}
     room.hands = {}
+    room.discarded = []
     room.dealer = SEATS[(SEATS.index(room.dealer) + 1) % 4] if room.dealer else 'S'
     _broadcast_state(room)
 
@@ -258,6 +343,11 @@ def on_disconnect():
 
 def _card_id(c):
     return f"{c['rank']}{c['suit']}"
+
+
+def _seat_name(room, seat):
+    p = room.by_seat().get(seat)
+    return p.name if p else seat
 
 
 def _broadcast_state(room):

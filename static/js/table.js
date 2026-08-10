@@ -52,7 +52,9 @@ function showToast(msg, { type = 'info', duration = 3200 } = {}) {
 
 let state = null;
 let selectedCardId = null;
+let selectedDiscards = new Set();  // card ids selected for discard (up to 5)
 let firstBidHandShown = null;  // hand_id we've already shown "you bid first" for
+let bidAutoOpenedHand = null;  // hand_id we've already auto-opened bid modal for
 
 socket.on('state', (s) => {
   state = s;
@@ -103,6 +105,15 @@ function runDealerSpinner(finalSeat, seatNames) {
   tick();
 }
 
+socket.on('discards_view', ({ cards }) => {
+  const row = document.getElementById('discard-review-row');
+  row.innerHTML = '';
+  for (const c of cards || []) {
+    row.appendChild(cardEl(c, { playable: false }));
+  }
+  document.getElementById('discard-review-modal').classList.add('show');
+});
+
 socket.on('last_trick', ({ last_trick, taker, can_undo }) => {
   if (!last_trick || Object.keys(last_trick).length === 0) {
     showToast('No previous trick to review yet.');
@@ -152,6 +163,7 @@ function render() {
   renderTakeButtons();
   renderScorecard();
   maybeShowFirstBidder();
+  maybeAutoOpenBid();
 
   document.getElementById('seat-picker').classList.toggle('show', !state.my_seat);
   updateSeatButtons();
@@ -172,6 +184,22 @@ function handIsDealt() {
   return SEATS.some(s => (counts[s] || 0) > 0);
 }
 
+function inDiscardPhase() {
+  if (!state.bid) return false;
+  const counts = state.hand_counts || {};
+  return (counts[state.bid.seat] || 0) > 10;
+}
+
+function isMyDiscardTurn() {
+  return inDiscardPhase() && state.my_seat === state.bid.seat;
+}
+
+function anyCardPlayedThisHand() {
+  if (state.trick && Object.keys(state.trick).length > 0) return true;
+  const t = state.tricks_taken || {};
+  return (t.NS || 0) > 0 || (t.EW || 0) > 0;
+}
+
 function renderStatus() {
   const el = document.getElementById('turn-status');
   if (!el) return;
@@ -182,6 +210,11 @@ function renderStatus() {
     // dealer's "click deal" message is now the centered Deal button, not turn-status.
     if (state.my_seat && state.my_seat !== state.dealer && state.dealer) {
       text = `Waiting on ${nameOf(state.dealer)} to deal`;
+    }
+  } else if (inDiscardPhase()) {
+    // bidder sees the center-discard button; others see waiting text.
+    if (!isMyDiscardTurn()) {
+      text = `Waiting on ${nameOf(state.bid.seat)} to discard`;
     }
   } else if (state.to_play) {
     if (state.to_play === state.my_seat) {
@@ -210,6 +243,30 @@ function renderTakeButtons() {
     const preDeal = !handIsDealt();
     deal.classList.toggle('show', !!(isDealer && preDeal));
   }
+  const discard = document.getElementById('center-discard');
+  if (discard) {
+    const showIt = isMyDiscardTurn();
+    discard.classList.toggle('show', showIt);
+    const count = selectedDiscards.size;
+    const ready = count === 5;
+    discard.classList.toggle('pending', !ready);
+    document.getElementById('center-discard-top').textContent = ready
+      ? 'Ready — click to discard' : 'You won the bid — pick 5 to discard';
+    document.getElementById('center-discard-bot').textContent = ready ? 'DISCARD' : `${count} / 5`;
+  }
+  const redeal = document.getElementById('btn-redeal');
+  if (redeal) {
+    const canRedeal = handIsDealt() && !state.bid && !anyCardPlayedThisHand()
+                      && !inDiscardPhase() && state.my_seat === state.dealer;
+    redeal.style.display = canRedeal ? '' : 'none';
+  }
+  const rd = document.getElementById('btn-review-discards');
+  if (rd) {
+    const canReview = !!(state.bid && state.my_seat === state.bid.seat
+                         && (state.discards_count || 0) > 0
+                         && !anyCardPlayedThisHand());
+    rd.style.display = canReview ? '' : 'none';
+  }
 }
 
 function maybeShowFirstBidder() {
@@ -220,6 +277,28 @@ function maybeShowFirstBidder() {
   if (firstBidHandShown === state.hand_id) return;
   firstBidHandShown = state.hand_id;
   showToast("You bid first — bidding opens with you.", { type: 'info-strong', duration: 5000 });
+}
+
+function maybeAutoOpenBid() {
+  if (!state.my_seat) return;
+  if (!state.dealer || !state.hand_id) return;
+  if (!handIsDealt() || state.bid) return;
+  if (leftOfDealer() !== state.my_seat) return;
+  if (bidAutoOpenedHand === state.hand_id) return;
+  bidAutoOpenedHand = state.hand_id;
+  openBidModal();
+}
+
+function openBidModal() {
+  if (state?.bid) {
+    bidSeat.value = state.bid.seat;
+    bidTricks.value = String(state.bid.tricks);
+    bidSuit.value = state.bid.suit;
+  } else if (state?.my_seat) {
+    bidSeat.value = state.my_seat;
+  }
+  updateBidValue();
+  bidModal.classList.add('show');
 }
 
 function renderBid() {
@@ -257,12 +336,25 @@ function renderHand() {
   container.innerHTML = '';
   if (!state.my_seat) return;
   const handIds = new Set(state.my_hand.map(c => `${c.rank}${c.suit}`));
-  if (selectedCardId && !handIds.has(selectedCardId)) selectedCardId = null;
-  if (state.to_play && state.to_play !== state.my_seat) selectedCardId = null;
+  const discardMode = isMyDiscardTurn();
+  if (discardMode) {
+    selectedCardId = null;
+    for (const id of Array.from(selectedDiscards)) {
+      if (!handIds.has(id)) selectedDiscards.delete(id);
+    }
+  } else {
+    selectedDiscards.clear();
+    if (selectedCardId && !handIds.has(selectedCardId)) selectedCardId = null;
+    if (state.to_play && state.to_play !== state.my_seat) selectedCardId = null;
+  }
   for (const card of state.my_hand) {
     const id = `${card.rank}${card.suit}`;
-    const el = cardEl(card, { playable: true });
-    if (id === selectedCardId) el.classList.add('selected');
+    const el = cardEl(card, { playable: true, discardMode });
+    if (discardMode) {
+      if (selectedDiscards.has(id)) el.classList.add('selected');
+    } else if (id === selectedCardId) {
+      el.classList.add('selected');
+    }
     container.appendChild(el);
   }
 }
@@ -328,7 +420,7 @@ function renderScorecard() {
   }
 }
 
-function cardEl(card, { playable }) {
+function cardEl(card, { playable, discardMode = false }) {
   const el = document.createElement('div');
   if (card.suit === 'JOKER') {
     el.className = 'card joker';
@@ -340,6 +432,19 @@ function cardEl(card, { playable }) {
   if (playable) {
     const id = `${card.rank}${card.suit}`;
     el.addEventListener('click', () => {
+      if (discardMode) {
+        if (selectedDiscards.has(id)) {
+          selectedDiscards.delete(id);
+        } else if (selectedDiscards.size >= 5) {
+          showToast('5 already selected — deselect one first.', { type: 'error' });
+          return;
+        } else {
+          selectedDiscards.add(id);
+        }
+        renderHand();
+        renderTakeButtons();
+        return;
+      }
       if (selectedCardId === id) {
         selectedCardId = null;
         socket.emit('play_card', { code, card_id: id });
@@ -373,6 +478,20 @@ document.querySelectorAll('.seat-btns button').forEach(btn => {
 document.getElementById('center-deal').addEventListener('click', () => {
   socket.emit('deal', { code });
 });
+document.getElementById('center-discard').addEventListener('click', () => {
+  if (selectedDiscards.size !== 5) return;
+  socket.emit('discard', { code, card_ids: Array.from(selectedDiscards) });
+  selectedDiscards.clear();
+});
+document.getElementById('btn-redeal').addEventListener('click', () => {
+  socket.emit('redeal', { code });
+});
+document.getElementById('btn-review-discards').addEventListener('click', () => {
+  socket.emit('review_discards', { code });
+});
+document.getElementById('btn-discard-review-close').addEventListener('click', () => {
+  document.getElementById('discard-review-modal').classList.remove('show');
+});
 document.getElementById('btn-ns-took').addEventListener('click', () => {
   socket.emit('take_trick', { code, team: 'NS' });
 });
@@ -404,15 +523,7 @@ function updateBidValue() {
 bidTricks.addEventListener('change', updateBidValue);
 bidSuit.addEventListener('change', updateBidValue);
 
-document.getElementById('btn-bid').addEventListener('click', () => {
-  if (state?.bid) {
-    bidSeat.value = state.bid.seat;
-    bidTricks.value = String(state.bid.tricks);
-    bidSuit.value = state.bid.suit;
-  }
-  updateBidValue();
-  bidModal.classList.add('show');
-});
+document.getElementById('btn-bid').addEventListener('click', openBidModal);
 document.getElementById('btn-bid-cancel').addEventListener('click', () => {
   bidModal.classList.remove('show');
 });
