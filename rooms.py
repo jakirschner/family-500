@@ -84,6 +84,7 @@ class Room:
             'bid': self.bid,
             'to_play': self.to_play,
             'hand_id': self.hand_id,
+            'kitty_size': len(self.kitty),
             'discards_count': len(self.discarded),
         }
 

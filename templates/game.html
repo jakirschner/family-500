@@ -45,6 +45,10 @@
           <span class="center-deal-top">You're the dealer</span>
           <span class="center-deal-bot">DEAL</span>
         </button>
+        <button class="center-deal" id="center-collect-kitty">
+          <span class="center-deal-top">You won the bid</span>
+          <span class="center-deal-bot">COLLECT KITTY</span>
+        </button>
         <button class="center-deal" id="center-discard">
           <span class="center-deal-top" id="center-discard-top">You won the bid — pick 5 to discard</span>
           <span class="center-deal-bot" id="center-discard-bot">0 / 5</span>
@@ -76,7 +80,10 @@
     <aside class="scorecard" id="scorecard">
       <header>
         <h3>Scorecard</h3>
-        <div class="target">first to 1000</div>
+        <div class="score-header-right">
+          <div class="target">first to 1000</div>
+          <button id="btn-collapse-score" title="Hide scorecard">◀</button>
+        </div>
       </header>
       <div class="score-totals">
         <div class="team-total ns"><span class="label">NS</span> <span id="total-ns">0</span></div>
@@ -194,6 +201,7 @@
       </div>
     </aside>
   </div>
+  <button id="btn-score-tab" class="score-tab" style="display:none">Score ▶</button>
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="{{ url_for('static', filename='js/table.js') }}"></script>

@@ -184,6 +184,10 @@ function handIsDealt() {
   return SEATS.some(s => (counts[s] || 0) > 0);
 }
 
+function canCollectKitty() {
+  return !!(state.bid && state.my_seat === state.bid.seat && (state.kitty_size || 0) > 0);
+}
+
 function inDiscardPhase() {
   if (!state.bid) return false;
   const counts = state.hand_counts || {};
@@ -211,6 +215,8 @@ function renderStatus() {
     if (state.my_seat && state.my_seat !== state.dealer && state.dealer) {
       text = `Waiting on ${nameOf(state.dealer)} to deal`;
     }
+  } else if (state.bid && (state.kitty_size || 0) > 0 && !canCollectKitty()) {
+    text = `Waiting on ${nameOf(state.bid.seat)} to collect the kitty`;
   } else if (inDiscardPhase()) {
     // bidder sees the center-discard button; others see waiting text.
     if (!isMyDiscardTurn()) {
@@ -242,6 +248,10 @@ function renderTakeButtons() {
     const isDealer = state.my_seat && state.my_seat === state.dealer;
     const preDeal = !handIsDealt();
     deal.classList.toggle('show', !!(isDealer && preDeal));
+  }
+  const collectKitty = document.getElementById('center-collect-kitty');
+  if (collectKitty) {
+    collectKitty.classList.toggle('show', canCollectKitty());
   }
   const discard = document.getElementById('center-discard');
   if (discard) {
@@ -283,13 +293,20 @@ function maybeAutoOpenBid() {
   if (!state.my_seat) return;
   if (!state.dealer || !state.hand_id) return;
   if (!handIsDealt() || state.bid) return;
-  if (leftOfDealer() !== state.my_seat) return;
+  if (state.my_seat !== state.dealer) return;
   if (bidAutoOpenedHand === state.hand_id) return;
   bidAutoOpenedHand = state.hand_id;
   openBidModal();
 }
 
 function openBidModal() {
+  bidSeat.innerHTML = '';
+  for (const s of SEATS) {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = (state.seats && state.seats[s]) ? `${state.seats[s]} (${s})` : s;
+    bidSeat.appendChild(opt);
+  }
   if (state?.bid) {
     bidSeat.value = state.bid.seat;
     bidTricks.value = String(state.bid.tricks);
@@ -305,7 +322,7 @@ function renderBid() {
   const disp = document.getElementById('bid-display');
   if (state.bid) {
     const { seat, tricks, suit, value } = state.bid;
-    disp.textContent = `${seat} · ${tricks} ${SUIT_GLYPH[suit] || suit} · ${value}`;
+    disp.textContent = `${nameOf(seat)} · ${tricks} ${SUIT_GLYPH[suit] || suit} · ${value}`;
   } else {
     disp.textContent = '— set bid —';
   }
@@ -478,10 +495,21 @@ document.querySelectorAll('.seat-btns button').forEach(btn => {
 document.getElementById('center-deal').addEventListener('click', () => {
   socket.emit('deal', { code });
 });
+document.getElementById('center-collect-kitty').addEventListener('click', () => {
+  socket.emit('collect_kitty', { code });
+});
 document.getElementById('center-discard').addEventListener('click', () => {
   if (selectedDiscards.size !== 5) return;
   socket.emit('discard', { code, card_ids: Array.from(selectedDiscards) });
   selectedDiscards.clear();
+});
+document.getElementById('btn-collapse-score').addEventListener('click', () => {
+  document.getElementById('app').classList.add('scorecard-collapsed');
+  document.getElementById('btn-score-tab').style.display = '';
+});
+document.getElementById('btn-score-tab').addEventListener('click', () => {
+  document.getElementById('app').classList.remove('scorecard-collapsed');
+  document.getElementById('btn-score-tab').style.display = 'none';
 });
 document.getElementById('btn-redeal').addEventListener('click', () => {
   socket.emit('redeal', { code });

@@ -220,15 +220,35 @@ def on_set_bid(data):
         emit('error_msg', {'msg': 'Invalid bid.'})
         return
     was_no_bid = room.bid is None
+    if not was_no_bid:
+        bidder = room.bid['seat']
+        if len(room.hands.get(bidder, [])) > 10 or room.discarded:
+            emit('error_msg', {'msg': 'Bid is locked — the kitty has already been collected.'})
+            return
     room.bid = {'seat': seat, 'tricks': tricks, 'suit': suit, 'value': BID_VALUES[(tricks, suit)]}
-    if was_no_bid and room.kitty:
-        # Winning bidder picks up kitty; must discard 5 before playing.
-        room.hands.setdefault(seat, []).extend(room.kitty)
-        room.kitty = []
-        room.to_play = None
-    else:
-        bidder_hand_size = len(room.hands.get(seat, []))
-        room.to_play = None if bidder_hand_size > 10 else seat
+    room.to_play = None
+    _broadcast_state(room)
+
+
+@socketio.on('collect_kitty')
+def on_collect_kitty(data):
+    code = (data or {}).get('code', '').upper()
+    room = store.get(code)
+    if not room:
+        return
+    if not room.bid:
+        emit('error_msg', {'msg': 'No bid set yet.'})
+        return
+    seat = room.seat_of(request.sid)
+    if seat != room.bid['seat']:
+        emit('error_msg', {'msg': 'Only the winning bidder can collect the kitty.'})
+        return
+    if not room.kitty:
+        emit('error_msg', {'msg': 'Kitty already collected.'})
+        return
+    room.hands.setdefault(seat, []).extend(room.kitty)
+    room.kitty = []
+    room.to_play = None
     _broadcast_state(room)
 
 

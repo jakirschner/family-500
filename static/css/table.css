@@ -73,9 +73,27 @@ html, body.table-body { height: 100%; overflow: hidden; }
   overflow-y: auto;
   border-left: 3px solid rgba(0,0,0,0.35);
 }
-.scorecard header { display: flex; align-items: baseline; justify-content: space-between; }
+.scorecard header { display: flex; align-items: center; justify-content: space-between; }
 .scorecard h3 { margin: 0; font-size: 26px; color: var(--gold-ink); }
+.score-header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
 .scorecard .target { font-size: 13px; color: #7a6a3a; }
+#btn-collapse-score {
+  background: none; border: none; cursor: pointer;
+  color: var(--gold-ink); font-size: 14px; padding: 2px 4px;
+  line-height: 1;
+}
+#btn-collapse-score:hover { color: var(--ink); }
+.table-app.scorecard-collapsed { grid-template-columns: minmax(0, 1fr); }
+.table-app.scorecard-collapsed .scorecard { display: none; }
+.score-tab {
+  position: fixed; right: 0; top: 50%; transform: translateY(-50%);
+  background: var(--paper); color: var(--ink);
+  border: 2px solid rgba(0,0,0,0.2); border-right: none;
+  border-radius: 8px 0 0 8px;
+  padding: 14px 6px; font-size: 12px; font-weight: 700;
+  cursor: pointer; z-index: 10;
+  writing-mode: vertical-rl; letter-spacing: 1px;
+}
 .score-totals {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 8px; margin: 12px 0 16px;
