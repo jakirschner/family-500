@@ -204,10 +204,20 @@ html, body.table-body { height: 100%; overflow: hidden; }
 .bid-panel:hover { background: var(--gold); }
 .bid-panel.static { cursor: default; pointer-events: none; }
 .trick-counters { font-size: 20px; font-weight: 600; color: var(--gold); }
+.top-right {
+  display: flex; align-items: center; gap: 10px;
+}
 .top-right #room-code {
   background: var(--paper); color: var(--ink);
   padding: 6px 14px; border-radius: 16px; font-weight: 700; letter-spacing: 1px;
 }
+.mute-btn {
+  background: transparent; border: 1px solid rgba(255,255,255,0.35);
+  color: var(--paper); border-radius: 14px;
+  padding: 4px 12px; font-size: 13px; cursor: pointer;
+}
+.mute-btn:hover { background: rgba(255,255,255,0.1); }
+.mute-btn.muted { opacity: 0.5; }
 
 .table-area {
   position: relative;

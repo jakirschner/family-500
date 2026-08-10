@@ -78,6 +78,28 @@ function showToast(msg, { type = 'info', duration = 3200 } = {}) {
   }, duration);
 }
 
+let isMuted = localStorage.getItem('muted500') === 'true';
+
+function playSound(name) {
+  if (isMuted) return;
+  const audio = new Audio(`/static/sounds/${name}.mp3`);
+  audio.play().catch(() => {});
+}
+
+socket.on('sound', ({ name }) => { playSound(name); });
+
+const muteBtn = document.getElementById('btn-mute');
+function updateMuteBtn() {
+  muteBtn.textContent = isMuted ? 'Unmute' : 'Mute';
+  muteBtn.classList.toggle('muted', isMuted);
+}
+updateMuteBtn();
+muteBtn.addEventListener('click', () => {
+  isMuted = !isMuted;
+  localStorage.setItem('muted500', String(isMuted));
+  updateMuteBtn();
+});
+
 let state = null;
 let selectedCardId = null;
 let selectedDiscards = new Set();  // card ids selected for discard (up to 5)

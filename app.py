@@ -133,6 +133,7 @@ def on_deal(data):
         emit('error_msg', {'msg': f"Only the dealer ({dealer_name}) can deal."})
         return
     deal_new_hand(room)
+    socketio.emit('sound', {'name': 'shuffle'}, to=code)
     _broadcast_state(room)
 
 
@@ -163,6 +164,7 @@ def on_play_card(data):
     card = hand.pop(idx)
     room.trick[seat] = card
     room.to_play = next_unplayed(seat, room.trick)
+    socketio.emit('sound', {'name': 'playcard'}, to=code)
     _broadcast_state(room)
 
 
@@ -200,6 +202,7 @@ def on_take_trick(data):
     room.last_trick_taker = team
     room.trick = {}
     room.to_play = None
+    socketio.emit('sound', {'name': 'taketrick'}, to=code)
     _broadcast_state(room)
 
 
@@ -287,6 +290,7 @@ def on_collect_kitty(data):
     room.hands.setdefault(seat, []).extend(room.kitty)
     room.kitty = []
     room.to_play = None
+    socketio.emit('sound', {'name': 'deal'}, to=code)
     _broadcast_state(room)
 
 
