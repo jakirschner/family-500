@@ -45,14 +45,6 @@
           <span class="center-deal-top">You're the dealer</span>
           <span class="center-deal-bot">DEAL</span>
         </button>
-        <button class="center-deal" id="center-collect-kitty">
-          <span class="center-deal-top">Kitty is ready</span>
-          <span class="center-deal-bot">COLLECT</span>
-        </button>
-        <button class="center-deal" id="center-discard">
-          <span class="center-deal-top" id="center-discard-top">You won the bid — pick 5 to discard</span>
-          <span class="center-deal-bot" id="center-discard-bot">0 / 5</span>
-        </button>
       </div>
 
       <div class="seat pos-bottom">
@@ -153,13 +145,35 @@
       </div>
     </aside>
 
+    <aside class="kitty-modal" id="collect-kitty-modal">
+      <div class="modal-card">
+        <h3>You won the bid</h3>
+        <div class="muted">Pick up the 5 kitty cards to continue.</div>
+        <div class="modal-buttons">
+          <button id="btn-collect-kitty-confirm" class="primary">Collect Kitty</button>
+        </div>
+      </div>
+    </aside>
+
+    <aside class="kitty-modal" id="discard-modal">
+      <div class="modal-card">
+        <h3>Discard 5 cards</h3>
+        <div class="muted">Select 5 from your hand below, then confirm.</div>
+        <div class="modal-value" id="discard-modal-count">0 / 5 selected</div>
+        <div class="modal-buttons">
+          <button id="btn-discard-confirm" class="primary">Discard</button>
+        </div>
+      </div>
+    </aside>
+
     <aside class="review-modal" id="discard-review-modal">
       <div class="modal-card review-card">
         <h3>Your discards</h3>
-        <div class="muted">The 5 cards you set aside from the kitty.</div>
+        <div class="muted">Click a card to recall it back to your hand.</div>
         <div class="discard-row" id="discard-review-row"></div>
         <div class="modal-buttons">
-          <button id="btn-discard-review-close" class="primary">Close</button>
+          <button id="btn-discard-review-recall">Recall All</button>
+          <button id="btn-discard-review-close" class="primary">Keep</button>
         </div>
       </div>
     </aside>

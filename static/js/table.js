@@ -109,9 +109,15 @@ socket.on('discards_view', ({ cards }) => {
   const row = document.getElementById('discard-review-row');
   row.innerHTML = '';
   for (const c of cards || []) {
-    row.appendChild(cardEl(c, { playable: false }));
+    const el = cardEl(c, { playable: false });
+    row.appendChild(el);
   }
   document.getElementById('discard-review-modal').classList.add('show');
+});
+
+socket.on('discards_recalled', ({ card_ids }) => {
+  document.getElementById('discard-review-modal').classList.remove('show');
+  selectedDiscards = new Set(card_ids);
 });
 
 socket.on('last_trick', ({ last_trick, taker, can_undo }) => {
@@ -247,20 +253,17 @@ function renderTakeButtons() {
     const preDeal = !handIsDealt();
     deal.classList.toggle('show', !!(isDealer && preDeal));
   }
-  const collectKitty = document.getElementById('center-collect-kitty');
-  if (collectKitty) {
-    collectKitty.classList.toggle('show', canCollectKitty());
-  }
-  const discard = document.getElementById('center-discard');
-  if (discard) {
-    const showIt = isMyDiscardTurn();
-    discard.classList.toggle('show', showIt);
+  const collectModal = document.getElementById('collect-kitty-modal');
+  if (collectModal) collectModal.classList.toggle('show', canCollectKitty());
+
+  const discardModal = document.getElementById('discard-modal');
+  if (discardModal) {
+    discardModal.classList.toggle('show', isMyDiscardTurn());
     const count = selectedDiscards.size;
-    const ready = count === 5;
-    discard.classList.toggle('pending', !ready);
-    document.getElementById('center-discard-top').textContent = ready
-      ? 'Ready — click to discard' : 'You won the bid — pick 5 to discard';
-    document.getElementById('center-discard-bot').textContent = ready ? 'DISCARD' : `${count} / 5`;
+    const countEl = document.getElementById('discard-modal-count');
+    if (countEl) countEl.textContent = `${count} / 5 selected`;
+    const confirmBtn = document.getElementById('btn-discard-confirm');
+    if (confirmBtn) confirmBtn.disabled = count !== 5;
   }
   const redeal = document.getElementById('btn-redeal');
   if (redeal) {
@@ -493,10 +496,10 @@ document.querySelectorAll('.seat-btns button').forEach(btn => {
 document.getElementById('center-deal').addEventListener('click', () => {
   socket.emit('deal', { code });
 });
-document.getElementById('center-collect-kitty').addEventListener('click', () => {
+document.getElementById('btn-collect-kitty-confirm').addEventListener('click', () => {
   socket.emit('collect_kitty', { code });
 });
-document.getElementById('center-discard').addEventListener('click', () => {
+document.getElementById('btn-discard-confirm').addEventListener('click', () => {
   if (selectedDiscards.size !== 5) return;
   socket.emit('discard', { code, card_ids: Array.from(selectedDiscards) });
   selectedDiscards.clear();
@@ -514,6 +517,9 @@ document.getElementById('btn-redeal').addEventListener('click', () => {
 });
 document.getElementById('btn-review-discards').addEventListener('click', () => {
   socket.emit('review_discards', { code });
+});
+document.getElementById('btn-discard-review-recall').addEventListener('click', () => {
+  socket.emit('recall_discards', { code });
 });
 document.getElementById('btn-discard-review-close').addEventListener('click', () => {
   document.getElementById('discard-review-modal').classList.remove('show');

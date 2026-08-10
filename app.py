@@ -292,6 +292,30 @@ def on_discard(data):
     _broadcast_state(room)
 
 
+@socketio.on('recall_discards')
+def on_recall_discards(data):
+    code = (data or {}).get('code', '').upper()
+    room = store.get(code)
+    if not room:
+        return
+    seat = room.seat_of(request.sid)
+    if not room.bid or seat != room.bid['seat']:
+        emit('error_msg', {'msg': 'Only the winning bidder can recall discards.'})
+        return
+    if not room.discarded:
+        emit('error_msg', {'msg': 'No discards to recall.'})
+        return
+    if room.trick or room.tricks_taken['NS'] > 0 or room.tricks_taken['EW'] > 0:
+        emit('error_msg', {'msg': 'Too late — a card has already been played.'})
+        return
+    recalled_ids = [_card_id(c) for c in room.discarded]
+    room.hands.setdefault(seat, []).extend(room.discarded)
+    room.discarded = []
+    room.to_play = None
+    emit('discards_recalled', {'card_ids': recalled_ids})
+    _broadcast_state(room)
+
+
 @socketio.on('review_discards')
 def on_review_discards(data):
     code = (data or {}).get('code', '').upper()
