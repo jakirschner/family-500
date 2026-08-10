@@ -41,6 +41,10 @@
         <div class="trick-slot pos-right" data-pos="right"></div>
         <div class="trick-slot pos-bottom" data-pos="bottom"></div>
         <div class="turn-status" id="turn-status"></div>
+        <button class="center-deal" id="center-deal">
+          <span class="center-deal-top">You're the dealer</span>
+          <span class="center-deal-bot">DEAL</span>
+        </button>
       </div>
 
       <div class="seat pos-bottom">
@@ -50,7 +54,6 @@
     </section>
 
     <footer class="bottom-bar">
-      <button id="btn-deal">Deal</button>
       <div class="trick-take">
         Take trick:
         <button id="btn-ns-took">NS took</button>
@@ -61,6 +64,8 @@
         <button id="btn-end-hand">End Hand</button>
       </div>
     </footer>
+
+    <div id="toast-container" class="toast-container"></div>
 
     <aside class="scorecard" id="scorecard">
       <header>
@@ -133,16 +138,6 @@
         <div class="modal-buttons">
           <button id="btn-bid-cancel">Cancel</button>
           <button id="btn-bid-confirm" class="primary">Set bid</button>
-        </div>
-      </div>
-    </aside>
-
-    <aside class="bid-modal" id="firstbid-modal">
-      <div class="modal-card">
-        <h3>You bid first</h3>
-        <div class="muted">You're to the left of the dealer — bidding opens with you.</div>
-        <div class="modal-buttons">
-          <button id="btn-firstbid-ok" class="primary">Got it</button>
         </div>
       </div>
     </aside>

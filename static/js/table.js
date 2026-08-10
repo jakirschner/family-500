@@ -33,8 +33,22 @@ socket.on('connect', () => { socket.emit('hello', { code, name }); });
 
 socket.on('error_msg', (data) => {
   console.warn('server:', data.msg);
-  alert(data.msg);
+  showToast(data.msg, { type: 'error' });
 });
+
+function showToast(msg, { type = 'info', duration = 3200 } = {}) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.textContent = msg;
+  container.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 200);
+  }, duration);
+}
 
 let state = null;
 let selectedCardId = null;
@@ -91,7 +105,7 @@ function runDealerSpinner(finalSeat, seatNames) {
 
 socket.on('last_trick', ({ last_trick, taker, can_undo }) => {
   if (!last_trick || Object.keys(last_trick).length === 0) {
-    alert('No previous trick to review yet.');
+    showToast('No previous trick to review yet.');
     return;
   }
   const pos = positions(state && state.my_seat);
@@ -165,10 +179,8 @@ function renderStatus() {
   let text = '';
   let mine = false;
   if (!handIsDealt()) {
-    if (state.my_seat && state.my_seat === state.dealer) {
-      text = "You're dealing — click Deal";
-      mine = true;
-    } else if (state.dealer) {
+    // dealer's "click deal" message is now the centered Deal button, not turn-status.
+    if (state.my_seat && state.my_seat !== state.dealer && state.dealer) {
       text = `Waiting on ${nameOf(state.dealer)} to deal`;
     }
   } else if (state.to_play) {
@@ -192,21 +204,22 @@ function renderTakeButtons() {
     const btn = document.getElementById(id);
     if (btn) btn.disabled = !full;
   }
-  const deal = document.getElementById('btn-deal');
+  const deal = document.getElementById('center-deal');
   if (deal) {
     const isDealer = state.my_seat && state.my_seat === state.dealer;
     const preDeal = !handIsDealt();
-    deal.style.display = (isDealer && preDeal) ? '' : 'none';
+    deal.classList.toggle('show', !!(isDealer && preDeal));
   }
 }
 
 function maybeShowFirstBidder() {
   if (!state.my_seat) return;
+  if (!state.dealer || !state.hand_id) return;
   if (!handIsDealt() || state.bid) return;
   if (leftOfDealer() !== state.my_seat) return;
   if (firstBidHandShown === state.hand_id) return;
   firstBidHandShown = state.hand_id;
-  document.getElementById('firstbid-modal').classList.add('show');
+  showToast("You bid first — bidding opens with you.", { type: 'info-strong', duration: 5000 });
 }
 
 function renderBid() {
@@ -357,7 +370,7 @@ document.querySelectorAll('.seat-btns button').forEach(btn => {
 });
 
 // ------- top-level buttons -------
-document.getElementById('btn-deal').addEventListener('click', () => {
+document.getElementById('center-deal').addEventListener('click', () => {
   socket.emit('deal', { code });
 });
 document.getElementById('btn-ns-took').addEventListener('click', () => {
@@ -375,9 +388,6 @@ document.getElementById('btn-review-close').addEventListener('click', () => {
 document.getElementById('btn-review-undo').addEventListener('click', () => {
   socket.emit('undo_take_trick', { code });
   document.getElementById('review-modal').classList.remove('show');
-});
-document.getElementById('btn-firstbid-ok').addEventListener('click', () => {
-  document.getElementById('firstbid-modal').classList.remove('show');
 });
 
 // ------- bid modal -------
@@ -423,7 +433,7 @@ const endBidSummary = document.getElementById('end-bid-summary');
 
 document.getElementById('btn-end-hand').addEventListener('click', () => {
   if (!state?.bid) {
-    alert('Set the winning bid first (click the bid panel at the top).');
+    showToast('Set the winning bid first (click the bid panel at the top).', { type: 'error' });
     return;
   }
   const { seat, tricks, suit, value } = state.bid;
