@@ -15,6 +15,15 @@ def next_seat(seat):
     return CLOCKWISE[(CLOCKWISE.index(seat) + 1) % 4]
 
 
+def next_unplayed(seat, trick):
+    """Next clockwise seat that hasn't played to this trick, or None if all four have."""
+    for i in range(1, 5):
+        s = CLOCKWISE[(CLOCKWISE.index(seat) + i) % 4]
+        if s not in trick:
+            return s
+    return None
+
+
 def _new_code():
     return ''.join(random.choices(string.ascii_uppercase, k=4))
 

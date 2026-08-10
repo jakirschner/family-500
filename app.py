@@ -2,7 +2,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, abort, session, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
-from rooms import store, deal_new_hand, Player, TEAM_OF, SEATS, next_seat
+from rooms import store, deal_new_hand, Player, TEAM_OF, SEATS, next_unplayed
 from scoring import score_hand, BID_VALUES
 
 app = Flask(__name__)
@@ -117,10 +117,7 @@ def on_play_card(data):
         return
     card = hand.pop(idx)
     room.trick[seat] = card
-    if len(room.trick) >= 4:
-        room.to_play = None
-    else:
-        room.to_play = next_seat(seat)
+    room.to_play = next_unplayed(seat, room.trick)
     _broadcast_state(room)
 
 
