@@ -52,12 +52,14 @@ body.lobby {
 .error { color: #a1231b; }
 
 /* ---------- Table layout ---------- */
-.table-body { background: var(--felt); min-height: 100vh; }
+html, body.table-body { height: 100%; overflow: hidden; }
+.table-body { background: var(--felt); }
 .table-app {
   display: grid;
-  grid-template-rows: 60px 1fr 80px;
-  grid-template-columns: 1fr 300px;
+  grid-template-rows: 52px minmax(0, 1fr) 64px;
+  grid-template-columns: minmax(0, 1fr) 280px;
   height: 100vh;
+  overflow: hidden;
 }
 .top-bar { grid-column: 1 / span 2; }
 .table-area { grid-column: 1; }
@@ -143,44 +145,47 @@ body.lobby {
 .table-area {
   position: relative;
   display: grid;
-  grid-template-columns: 180px 1fr 180px;
-  grid-template-rows: 120px 1fr 200px;
-  gap: 12px;
-  padding: 16px;
+  grid-template-columns: 160px minmax(0, 1fr) 160px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 10px 12px;
+  min-height: 0;
+  overflow: hidden;
 }
-.seat-n { grid-column: 2; grid-row: 1; justify-self: center; }
+.seat-n { grid-column: 2; grid-row: 1; justify-self: center; align-self: start; }
 .seat-w { grid-column: 1; grid-row: 2; align-self: center; }
 .seat-e { grid-column: 3; grid-row: 2; align-self: center; }
-.seat-s { grid-column: 1 / span 3; grid-row: 3; justify-self: center; }
+.seat-s { grid-column: 1 / span 3; grid-row: 3; justify-self: center; align-self: end; }
 
 .badge {
   background: rgba(0,0,0,0.35); color: var(--paper);
-  padding: 6px 14px; border-radius: 20px;
-  display: inline-block; margin-bottom: 6px;
-  font-size: 14px; font-weight: 600;
+  padding: 4px 12px; border-radius: 20px;
+  display: inline-block; margin-bottom: 4px;
+  font-size: 12px; font-weight: 600;
 }
 .you-badge {
   background: transparent;
   border: 2px solid var(--gold);
   color: var(--gold);
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .hand-back { display: flex; gap: 2px; }
 .hand-back.vertical { flex-direction: column; }
 .card-back {
-  width: 34px; height: 48px;
+  width: 28px; height: 40px;
   background: var(--card-back);
   border: 2px solid var(--card-back-accent);
   border-radius: 4px;
 }
-.hand-back.vertical .card-back { width: 48px; height: 20px; }
+.hand-back.vertical .card-back { width: 40px; height: 16px; }
 
 .hand {
   display: flex; gap: 6px; flex-wrap: nowrap; justify-content: center;
 }
 .card {
-  width: 78px; height: 108px;
+  width: clamp(56px, 6.2vw, 78px);
+  aspect-ratio: 5 / 7;
   background: var(--paper);
   border-radius: 8px;
   box-shadow: var(--shadow);
@@ -194,18 +199,20 @@ body.lobby {
 .card:hover { transform: translateY(-6px); }
 .card.suit-H, .card.suit-D { color: #b02a2a; }
 .card.suit-S, .card.suit-C { color: #111; }
-.card .rank { font-size: 22px; font-weight: 700; line-height: 1; }
-.card .suit { font-size: 28px; margin-top: 4px; }
+.card .rank { font-size: clamp(16px, 1.8vw, 22px); font-weight: 700; line-height: 1; }
+.card .suit { font-size: clamp(22px, 2.4vw, 28px); margin-top: 4px; }
 .card.joker { background: linear-gradient(135deg, #fff, var(--gold)); color: #333; }
 
 /* ---------- Trick area ---------- */
 .trick-area {
   grid-column: 2; grid-row: 2;
   position: relative;
+  align-self: center; justify-self: center;
   display: grid;
-  grid-template-columns: 100px 100px 100px;
-  grid-template-rows: 100px 100px 100px;
-  gap: 4px; justify-content: center; align-content: center;
+  --slot: clamp(70px, 8vw, 100px);
+  grid-template-columns: var(--slot) var(--slot) var(--slot);
+  grid-template-rows: var(--slot) var(--slot) var(--slot);
+  gap: 4px;
 }
 .slot-n { grid-column: 2; grid-row: 1; }
 .slot-w { grid-column: 1; grid-row: 2; }
@@ -215,7 +222,7 @@ body.lobby {
   border: 2px dashed rgba(255,255,255,0.15);
   border-radius: 8px;
   display: grid; place-items: center;
-  min-height: 100px;
+  min-width: 0; min-height: 0;
 }
 .trick-slot .card { cursor: default; }
 .trick-slot .card:hover { transform: none; }
