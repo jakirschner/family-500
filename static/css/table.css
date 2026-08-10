@@ -106,20 +106,34 @@ html, body.table-body { height: 100%; overflow: hidden; }
 .team-total.ns { background: rgba(242,209,102,0.25); }
 .team-total.ew { background: rgba(242,158,128,0.20); }
 .team-total .label { font-size: 14px; font-weight: 600; color: #444; }
-.score-rows { width: 100%; border-collapse: collapse; font-size: 14px; }
+.team-total.winner {
+  border-color: var(--gold); border-width: 3px;
+  box-shadow: 0 0 0 2px var(--gold-ink);
+}
+.score-rows { width: 100%; border-collapse: collapse; font-size: 16px; font-family: 'Caveat', cursive; }
+.score-rows th { font-size: 13px; font-family: system-ui, sans-serif; }
 .score-rows th, .score-rows td { padding: 6px 4px; text-align: left; }
+.score-totals { font-family: 'Caveat', cursive; }
+.team-total { font-family: 'Caveat', cursive; }
 .score-rows th { color: #7a6a3a; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.15); }
 .score-rows td.v { text-align: right; font-variant-numeric: tabular-nums; }
 .score-rows td.v.neg { color: #a1231b; }
 .score-rows td.v.ns { font-weight: 700; }
 
-/* ---------- Bid / End Hand modals ---------- */
-.bid-modal, .end-modal, .review-modal {
+/* ---------- Bid / End Hand / Win modals ---------- */
+.bid-modal, .end-modal, .review-modal, .win-modal {
   position: fixed; inset: 0; z-index: 30;
   background: rgba(0,0,0,0.6);
   display: none; place-items: center;
 }
-.bid-modal.show, .end-modal.show, .review-modal.show { display: grid; }
+.bid-modal.show, .end-modal.show, .review-modal.show, .win-modal.show { display: grid; }
+.win-card { text-align: center; min-width: 280px; }
+.win-card h2 { margin: 0 0 8px; font-size: 26px; color: var(--gold-ink); }
+.win-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+.win-score-row { border: 2px solid rgba(0,0,0,0.12); border-radius: 8px; padding: 10px 8px; }
+.win-score-row.winner { border-color: var(--gold); border-width: 3px; box-shadow: 0 0 0 2px var(--gold-ink); }
+.win-team { display: block; font-size: 12px; font-weight: 600; color: #666; }
+.win-pts { display: block; font-size: 28px; font-weight: 700; }
 
 /* Bid modal is a corner popover (no backdrop) so players can see their cards. */
 #bid-modal {

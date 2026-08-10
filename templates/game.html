@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>500 — {{ code }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/table.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap">
 </head>
 <body class="table-body"
       data-code="{{ code }}"
@@ -205,6 +207,26 @@
       </div>
     </aside>
 
+    <aside class="win-modal" id="win-modal">
+      <div class="modal-card win-card">
+        <h2 id="win-headline"></h2>
+        <div id="win-message" class="muted"></div>
+        <div class="win-scores">
+          <div class="win-score-row" id="win-score-ns">
+            <span class="win-team" id="win-team-ns">NS</span>
+            <span class="win-pts" id="win-pts-ns">0</span>
+          </div>
+          <div class="win-score-row" id="win-score-ew">
+            <span class="win-team" id="win-team-ew">EW</span>
+            <span class="win-pts" id="win-pts-ew">0</span>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button id="btn-new-game" class="primary">New Game</button>
+        </div>
+      </div>
+    </aside>
+
     <aside class="end-modal" id="end-modal">
       <div class="modal-card">
         <h3>End of hand</h3>
@@ -227,6 +249,7 @@
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="{{ url_for('static', filename='js/table.js') }}"></script>
 </body>
 </html>

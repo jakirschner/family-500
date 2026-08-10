@@ -166,6 +166,32 @@ function runDealerSpinner(finalSeat, seatNames) {
   tick();
 }
 
+socket.on('game_won', ({ winner, scores, seats }) => {
+  const myTeam = state && state.my_team;
+  const won = myTeam === winner;
+  const headline = document.getElementById('win-headline');
+  const message = document.getElementById('win-message');
+  headline.textContent = won ? 'You win!' : `${winner} wins!`;
+  if (won && state && state.my_seat) {
+    const partnerSeat = { N: 'S', S: 'N', E: 'W', W: 'E' }[state.my_seat];
+    const partnerName = (seats && seats[partnerSeat]) || partnerSeat;
+    message.textContent = `You and ${partnerName} win! Congratulations!`;
+  } else {
+    message.textContent = 'Better luck next time!';
+  }
+  for (const team of ['NS', 'EW']) {
+    document.getElementById(`win-pts-${team.toLowerCase()}`).textContent = scores[team] || 0;
+    document.getElementById(`win-team-${team.toLowerCase()}`).textContent = team;
+    document.getElementById(`win-score-${team.toLowerCase()}`)?.classList.toggle('winner', team === winner);
+  }
+  document.getElementById('win-modal').classList.add('show');
+  if (won && typeof confetti !== 'undefined') {
+    confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 } });
+    setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { x: 0.1, y: 0.6 } }), 400);
+    setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { x: 0.9, y: 0.6 } }), 700);
+  }
+});
+
 socket.on('discards_view', ({ cards }) => {
   const row = document.getElementById('discard-review-row');
   row.innerHTML = '';
@@ -531,8 +557,13 @@ function renderTrick() {
 }
 
 function renderScorecard() {
-  document.getElementById('total-ns').textContent = state.score.NS || 0;
-  document.getElementById('total-ew').textContent = state.score.EW || 0;
+  const ns = state.score.NS || 0;
+  const ew = state.score.EW || 0;
+  document.getElementById('total-ns').textContent = ns;
+  document.getElementById('total-ew').textContent = ew;
+  const nsWon = ns >= 1000, ewWon = ew >= 1000;
+  document.querySelector('.team-total.ns').classList.toggle('winner', nsWon);
+  document.querySelector('.team-total.ew').classList.toggle('winner', ewWon);
   const body = document.getElementById('score-body');
   body.innerHTML = '';
   for (const h of state.history || []) {
@@ -708,6 +739,10 @@ document.getElementById('btn-end-hand').addEventListener('click', () => {
 });
 document.getElementById('btn-end-cancel').addEventListener('click', () => {
   endModal.classList.remove('show');
+});
+document.getElementById('btn-new-game').addEventListener('click', () => {
+  socket.emit('new_game', { code });
+  document.getElementById('win-modal').classList.remove('show');
 });
 document.getElementById('btn-end-confirm').addEventListener('click', () => {
   socket.emit('end_hand', {

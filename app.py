@@ -114,6 +114,7 @@ def on_redeal(data):
         return
     dealer_name = _seat_name(room, room.dealer)
     deal_new_hand(room)
+    socketio.emit('sound', {'name': 'shuffle'}, to=code)
     socketio.emit('info_msg', {'msg': f'{dealer_name} is redealing — no bid.'}, to=code)
     _broadcast_state(room)
 
@@ -400,11 +401,51 @@ def on_end_hand(data):
     room.bid = None
     room.trick = {}
     room.last_trick = {}
+    room.last_trick_taker = None
     room.tricks_taken = {'NS': 0, 'EW': 0}
     room.hands = {}
+    room.kitty = []
     room.discarded = []
     room.dealer = SEATS[(SEATS.index(room.dealer) + 1) % 4] if room.dealer else 'S'
     _broadcast_state(room)
+    winner = None
+    if room.score['NS'] >= 1000:
+        winner = 'NS'
+    elif room.score['EW'] >= 1000:
+        winner = 'EW'
+    if winner:
+        seats_map = {s: p.name for s, p in room.by_seat().items()}
+        socketio.emit('game_won', {
+            'winner': winner,
+            'scores': dict(room.score),
+            'seats': seats_map,
+        }, to=code)
+
+
+@socketio.on('new_game')
+def on_new_game(data):
+    import random
+    code = (data or {}).get('code', '').upper()
+    room = store.get(code)
+    if not room:
+        return
+    room.score = {'NS': 0, 'EW': 0}
+    room.history = []
+    room.bid = None
+    room.trick = {}
+    room.last_trick = {}
+    room.last_trick_taker = None
+    room.tricks_taken = {'NS': 0, 'EW': 0}
+    room.hands = {}
+    room.kitty = []
+    room.discarded = []
+    room.to_play = None
+    seated = list(room.by_seat().keys())
+    room.dealer = random.choice(seated) if seated else None
+    _broadcast_state(room)
+    if room.dealer:
+        seats_map = {s: p.name for s, p in room.by_seat().items()}
+        socketio.emit('first_dealer', {'seat': room.dealer, 'seats': seats_map}, to=code)
 
 
 @socketio.on('review_last_trick')
