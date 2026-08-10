@@ -1,4 +1,5 @@
 import os
+import random
 from flask import Flask, render_template, request, redirect, url_for, abort, session, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
@@ -79,6 +80,14 @@ def on_take_seat(data):
     if not p:
         return
     p.seat = seat
+    # If this fills the room and no dealer chosen yet, spin for first dealer.
+    seated = room.by_seat()
+    if len(seated) == 4 and room.dealer is None:
+        room.dealer = random.choice(SEATS)
+        socketio.emit('first_dealer', {
+            'seat': room.dealer,
+            'seats': {s: pl.name for s, pl in seated.items()},
+        }, to=code)
     _broadcast_state(room)
 
 
@@ -90,6 +99,10 @@ def on_deal(data):
         return
     if len(room.by_seat()) < 4:
         emit('error_msg', {'msg': 'Need 4 players seated to deal.'})
+        return
+    seat = room.seat_of(request.sid)
+    if room.dealer and seat != room.dealer:
+        emit('error_msg', {'msg': f"Only the dealer ({room.dealer}) can deal."})
         return
     deal_new_hand(room)
     _broadcast_state(room)

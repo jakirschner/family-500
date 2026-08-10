@@ -294,6 +294,49 @@ html, body.table-body { height: 100%; overflow: hidden; }
 .bottom-bar button:disabled { opacity: 0.35; cursor: not-allowed; }
 .trick-take { display: flex; gap: 8px; align-items: center; }
 
+/* ---------- Dealer spinner overlay ---------- */
+.dealer-spinner {
+  position: fixed; inset: 0; z-index: 40;
+  background: rgba(0,0,0,0.75);
+  display: none; place-items: center;
+}
+.dealer-spinner.show { display: grid; }
+.spin-inner { text-align: center; color: var(--paper); }
+.spin-inner h3 {
+  margin: 0 0 24px; font-size: 22px; color: var(--gold);
+  letter-spacing: 2px; text-transform: uppercase;
+}
+.spin-grid {
+  display: grid;
+  grid-template-columns: 140px 140px 140px;
+  grid-template-rows: 100px 100px 100px;
+  gap: 16px;
+  margin: 0 auto;
+}
+.spin-tile[data-seat="N"] { grid-column: 2; grid-row: 1; }
+.spin-tile[data-seat="E"] { grid-column: 3; grid-row: 2; }
+.spin-tile[data-seat="S"] { grid-column: 2; grid-row: 3; }
+.spin-tile[data-seat="W"] { grid-column: 1; grid-row: 2; }
+.spin-tile {
+  background: var(--felt-dark); color: var(--paper);
+  border: 3px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  display: grid; place-items: center; align-content: center; gap: 4px;
+  transition: transform 90ms, border-color 90ms, background 90ms;
+}
+.spin-tile.active {
+  background: var(--gold); color: var(--ink);
+  border-color: var(--gold-ink);
+  transform: scale(1.06);
+  box-shadow: 0 6px 18px rgba(242,209,102,0.4);
+}
+.spin-tile .spin-seat { font-size: 28px; font-weight: 800; letter-spacing: 2px; }
+.spin-tile .spin-name { font-size: 13px; font-weight: 600; opacity: 0.9; }
+.spin-result {
+  margin-top: 24px; font-size: 20px; font-weight: 700;
+  color: var(--gold); min-height: 28px;
+}
+
 /* ---------- Seat picker overlay ---------- */
 .seat-picker {
   position: fixed; inset: 0;

@@ -126,8 +126,5 @@ def deal_new_hand(room: Room):
     room.bid = None
     room.to_play = None
     room.hand_id += 1
-    # rotate dealer (or set first dealer)
-    if room.dealer is None:
-        room.dealer = 'S'
-    else:
-        room.dealer = SEATS[(SEATS.index(room.dealer) + 1) % 4]
+    # dealer is chosen by spinner when 4th seat is taken, and rotates on end_hand.
+    # deal_new_hand does NOT rotate.

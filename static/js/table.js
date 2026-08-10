@@ -45,6 +45,50 @@ socket.on('state', (s) => {
   render();
 });
 
+socket.on('first_dealer', ({ seat, seats }) => {
+  runDealerSpinner(seat, seats || {});
+});
+
+function runDealerSpinner(finalSeat, seatNames) {
+  const overlay = document.getElementById('dealer-spinner');
+  const order = ['N', 'E', 'S', 'W'];
+  for (const s of order) {
+    const tile = document.querySelector(`.spin-tile[data-seat="${s}"]`);
+    if (!tile) continue;
+    tile.classList.remove('active');
+    tile.querySelector('.spin-name').textContent = seatNames[s] || '';
+  }
+  const resultEl = document.getElementById('spinner-result');
+  resultEl.textContent = '';
+  overlay.classList.add('show');
+
+  const finalIdx = order.indexOf(finalSeat);
+  const baseSteps = 13;
+  const totalSteps = baseSteps + ((finalIdx - ((baseSteps - 1) % 4) + 4) % 4);
+  let step = 0;
+  const highlight = (idx) => {
+    order.forEach((s, k) => {
+      const el = document.querySelector(`.spin-tile[data-seat="${s}"]`);
+      if (el) el.classList.toggle('active', k === idx);
+    });
+  };
+  const tick = () => {
+    highlight(step % 4);
+    step++;
+    if (step < totalSteps) {
+      const delay = 70 + step * 30;
+      setTimeout(tick, delay);
+    } else {
+      const name = seatNames[finalSeat] || finalSeat;
+      resultEl.textContent = `${name} (${finalSeat}) deals first`;
+      setTimeout(() => {
+        overlay.classList.remove('show');
+      }, 2200);
+    }
+  };
+  tick();
+}
+
 socket.on('last_trick', ({ last_trick, taker, can_undo }) => {
   if (!last_trick || Object.keys(last_trick).length === 0) {
     alert('No previous trick to review yet.');
@@ -147,6 +191,12 @@ function renderTakeButtons() {
   for (const id of ['btn-ns-took', 'btn-ew-took']) {
     const btn = document.getElementById(id);
     if (btn) btn.disabled = !full;
+  }
+  const deal = document.getElementById('btn-deal');
+  if (deal) {
+    const isDealer = state.my_seat && state.my_seat === state.dealer;
+    const preDeal = !handIsDealt();
+    deal.style.display = (isDealer && preDeal) ? '' : 'none';
   }
 }
 
