@@ -251,7 +251,6 @@ html, body.table-body { height: 100%; overflow: hidden; }
 }
 .hand .card { margin-left: -20px; position: relative; }
 .hand .card:first-child { margin-left: 0; }
-.hand .card:hover, .hand .card.selected { z-index: 2; }
 .card {
   width: clamp(56px, 6.2vw, 78px);
   aspect-ratio: 5 / 7;

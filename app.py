@@ -34,8 +34,11 @@ def join_room_form():
         return render_template('lobby.html', passcode_required=True, error='Wrong passcode.'), 403
     name = (request.form.get('name') or '').strip() or 'Player'
     code = (request.form.get('code') or '').strip().upper()
-    if not store.get(code):
+    room = store.get(code)
+    if not room:
         return render_template('lobby.html', passcode_required=bool(JOIN_PASSCODE), error=f'Room {code} not found.'), 404
+    if not room.open_seats():
+        return render_template('lobby.html', passcode_required=bool(JOIN_PASSCODE), error=f'Room {code} is full — please start a new one.'), 403
     session['name'] = name
     return redirect(url_for('room_view', code=code))
 
