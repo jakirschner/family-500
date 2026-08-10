@@ -83,9 +83,8 @@ let selectedCardId = null;
 let selectedDiscards = new Set();  // card ids selected for discard (up to 5)
 let firstBidHandShown = null;  // hand_id we've already shown "you bid first" for
 let bidAutoOpenedHand = null;  // hand_id we've already auto-opened bid modal for
-let handOrder = [];            // card IDs in player's chosen display order
-let handOrderHandId = null;    // hand_id handOrder was last built for
-let handOrderSize = 0;         // hand size when handOrder was last built
+let handOrder = [];         // card IDs in player's chosen display order (includes dead slots)
+let handOrderHandId = null; // hand_id handOrder was last built for
 
 socket.on('state', (s) => {
   state = s;
@@ -241,6 +240,14 @@ function anyCardPlayedThisHand() {
   return (t.NS || 0) > 0 || (t.EW || 0) > 0;
 }
 
+function canPlayCards() {
+  if (!state || !state.bid) return false;
+  if ((state.kitty_size || 0) > 0) return false;
+  const counts = state.hand_counts || {};
+  if ((counts[state.bid.seat] || 0) > 10) return false;
+  return true;
+}
+
 function renderStatus() {
   const el = document.getElementById('turn-status');
   if (!el) return;
@@ -383,21 +390,38 @@ function renderBadges() {
 function teamOf(seat) { return (seat === 'N' || seat === 'S') ? 'NS' : 'EW'; }
 
 function updateHandOrder(cards) {
-  const currentIds = cards.map(cardKey);
-  const currentSet = new Set(currentIds);
-  const grew = currentIds.length > handOrderSize;
-  if (state.hand_id !== handOrderHandId || grew) {
-    // New deal or kitty collected — re-sort from scratch.
+  const currentSet = new Set(cards.map(cardKey));
+  if (state.hand_id !== handOrderHandId) {
+    // New deal — fresh sort.
     handOrder = sortCards(cards).map(cardKey);
   } else {
-    // Same or shrunk — preserve arrangement, drop played/discarded cards.
-    handOrder = handOrder.filter(id => currentSet.has(id));
-    for (const id of currentIds) {
-      if (!handOrder.includes(id)) handOrder.push(id);
+    // Same hand: dead IDs (played/discarded) stay in handOrder as sticky slots so
+    // recalled cards return to the same position. Only insert genuinely new cards
+    // (kitty collect) at their sorted position among currently visible cards.
+    const existingSet = new Set(handOrder);
+    const newCards = cards.filter(c => !existingSet.has(cardKey(c)));
+    if (newCards.length > 0) {
+      const fullSorted = sortCards(cards).map(cardKey);
+      const visibleSet = new Set(handOrder.filter(id => currentSet.has(id)));
+      const placed = new Set(visibleSet);
+      for (const newCard of sortCards(newCards)) {
+        const newId = cardKey(newCard);
+        const idxInSorted = fullSorted.indexOf(newId);
+        let insertAfter = -1;
+        for (let i = idxInSorted - 1; i >= 0; i--) {
+          const priorId = fullSorted[i];
+          if (placed.has(priorId)) {
+            insertAfter = handOrder.indexOf(priorId);
+            break;
+          }
+        }
+        handOrder.splice(insertAfter + 1, 0, newId);
+        placed.add(newId);
+      }
     }
+    // (no else — dead IDs already in handOrder, renderHand skips them automatically)
   }
   handOrderHandId = state.hand_id;
-  handOrderSize = currentIds.length;
 }
 
 function renderHand() {
@@ -516,6 +540,10 @@ function cardEl(card, { playable, discardMode = false }) {
         }
         renderHand();
         renderTakeButtons();
+        return;
+      }
+      if (!canPlayCards()) {
+        showToast('Waiting on the kitty to be discarded.', { type: 'error' });
         return;
       }
       if (selectedCardId === id) {
@@ -669,9 +697,14 @@ if (typeof Sortable !== 'undefined') {
       chosenClass: 'sortable-chosen',
       dragClass: 'sortable-drag',
       onEnd: () => {
-        handOrder = Array.from(handEl.querySelectorAll('.card'))
+        const newVisible = Array.from(handEl.querySelectorAll('.card'))
           .map(el => el.dataset.cardId)
           .filter(Boolean);
+        // Replace visible slots in handOrder with the new drag order,
+        // leaving dead (played/discarded) slot IDs at their positions.
+        const handIds = new Set(state && state.my_hand ? state.my_hand.map(cardKey) : []);
+        let vIdx = 0;
+        handOrder = handOrder.map(id => handIds.has(id) ? newVisible[vIdx++] : id);
       },
     });
   }

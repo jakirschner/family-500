@@ -153,6 +153,9 @@ def on_play_card(data):
     if seat in room.trick:
         emit('error_msg', {'msg': "You've already played to this trick."})
         return
+    if not room.bid or room.kitty or len(room.hands.get(room.bid['seat'], [])) > 10:
+        emit('error_msg', {'msg': "Waiting on the kitty to be discarded."})
+        return
     if room.to_play and room.to_play != seat:
         turn_name = _seat_name(room, room.to_play)
         emit('error_msg', {'msg': f"It's {turn_name}'s turn to play."})
