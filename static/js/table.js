@@ -38,6 +38,7 @@ socket.on('error_msg', (data) => {
 
 let state = null;
 let selectedCardId = null;
+let firstBidHandShown = null;  // hand_id we've already shown "you bid first" for
 
 socket.on('state', (s) => {
   state = s;
@@ -85,10 +86,73 @@ function render() {
   renderHand();
   renderOpponents();
   renderTrick();
+  renderStatus();
+  renderTakeButtons();
   renderScorecard();
+  maybeShowFirstBidder();
 
   document.getElementById('seat-picker').classList.toggle('show', !state.my_seat);
   updateSeatButtons();
+}
+
+function nameOf(seat) {
+  return (state.seats && state.seats[seat]) || seat;
+}
+
+function leftOfDealer() {
+  if (!state.dealer) return null;
+  const i = CLOCKWISE.indexOf(state.dealer);
+  return i < 0 ? null : CLOCKWISE[(i + 1) % 4];
+}
+
+function handIsDealt() {
+  const counts = state.hand_counts || {};
+  return SEATS.some(s => (counts[s] || 0) > 0);
+}
+
+function renderStatus() {
+  const el = document.getElementById('turn-status');
+  if (!el) return;
+  el.className = 'turn-status';
+  let text = '';
+  let mine = false;
+  if (!handIsDealt()) {
+    if (state.my_seat && state.my_seat === state.dealer) {
+      text = "You're dealing — click Deal";
+      mine = true;
+    } else if (state.dealer) {
+      text = `Waiting on ${nameOf(state.dealer)} to deal`;
+    }
+  } else if (state.to_play) {
+    if (state.to_play === state.my_seat) {
+      text = 'Your turn';
+      mine = true;
+    } else {
+      text = `Waiting on ${nameOf(state.to_play)}`;
+    }
+  } else if (state.trick && Object.keys(state.trick).length === 4) {
+    text = 'Trick complete — record who took it';
+  }
+  el.textContent = text;
+  if (mine) el.classList.add('mine');
+  el.classList.toggle('empty', !text);
+}
+
+function renderTakeButtons() {
+  const full = state.trick && Object.keys(state.trick).length === 4;
+  for (const id of ['btn-ns-took', 'btn-ew-took']) {
+    const btn = document.getElementById(id);
+    if (btn) btn.disabled = !full;
+  }
+}
+
+function maybeShowFirstBidder() {
+  if (!state.my_seat) return;
+  if (!handIsDealt() || state.bid) return;
+  if (leftOfDealer() !== state.my_seat) return;
+  if (firstBidHandShown === state.hand_id) return;
+  firstBidHandShown = state.hand_id;
+  document.getElementById('firstbid-modal').classList.add('show');
 }
 
 function renderBid() {
@@ -127,6 +191,7 @@ function renderHand() {
   if (!state.my_seat) return;
   const handIds = new Set(state.my_hand.map(c => `${c.rank}${c.suit}`));
   if (selectedCardId && !handIds.has(selectedCardId)) selectedCardId = null;
+  if (state.to_play && state.to_play !== state.my_seat) selectedCardId = null;
   for (const card of state.my_hand) {
     const id = `${card.rank}${card.suit}`;
     const el = cardEl(card, { playable: true });
@@ -252,6 +317,9 @@ document.getElementById('btn-review').addEventListener('click', () => {
 });
 document.getElementById('btn-review-close').addEventListener('click', () => {
   document.getElementById('review-modal').classList.remove('show');
+});
+document.getElementById('btn-firstbid-ok').addEventListener('click', () => {
+  document.getElementById('firstbid-modal').classList.remove('show');
 });
 
 // ------- bid modal -------

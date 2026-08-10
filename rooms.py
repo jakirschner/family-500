@@ -8,6 +8,11 @@ from deck import deal as deal_deck
 
 SEATS = ('N', 'E', 'S', 'W')
 TEAM_OF = {'N': 'NS', 'S': 'NS', 'E': 'EW', 'W': 'EW'}
+CLOCKWISE = ('N', 'E', 'S', 'W')
+
+
+def next_seat(seat):
+    return CLOCKWISE[(CLOCKWISE.index(seat) + 1) % 4]
 
 
 def _new_code():
@@ -34,6 +39,8 @@ class Room:
     score: dict = field(default_factory=lambda: {'NS': 0, 'EW': 0})
     history: list = field(default_factory=list)  # hand-by-hand scoring log
     bid: dict | None = None  # {'seat': 'S', 'tricks': 8, 'suit': 'H'}
+    to_play: str | None = None  # seat whose turn it is to play (None = no active turn)
+    hand_id: int = 0  # increments each deal; clients use for one-shot popups
 
     def seat_of(self, sid):
         p = self.players.get(sid)
@@ -64,6 +71,8 @@ class Room:
             'score': self.score,
             'history': self.history,
             'bid': self.bid,
+            'to_play': self.to_play,
+            'hand_id': self.hand_id,
         }
 
 
@@ -104,6 +113,8 @@ def deal_new_hand(room: Room):
     room.last_trick = {}
     room.tricks_taken = {'NS': 0, 'EW': 0}
     room.bid = None
+    room.to_play = None
+    room.hand_id += 1
     # rotate dealer (or set first dealer)
     if room.dealer is None:
         room.dealer = 'S'

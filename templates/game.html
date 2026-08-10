@@ -40,6 +40,7 @@
         <div class="trick-slot pos-left" data-pos="left"></div>
         <div class="trick-slot pos-right" data-pos="right"></div>
         <div class="trick-slot pos-bottom" data-pos="bottom"></div>
+        <div class="turn-status" id="turn-status"></div>
       </div>
 
       <div class="seat pos-bottom">
@@ -119,6 +120,16 @@
         <div class="modal-buttons">
           <button id="btn-bid-cancel">Cancel</button>
           <button id="btn-bid-confirm" class="primary">Set bid</button>
+        </div>
+      </div>
+    </aside>
+
+    <aside class="bid-modal" id="firstbid-modal">
+      <div class="modal-card">
+        <h3>You bid first</h3>
+        <div class="muted">You're to the left of the dealer — bidding opens with you.</div>
+        <div class="modal-buttons">
+          <button id="btn-firstbid-ok" class="primary">Got it</button>
         </div>
       </div>
     </aside>

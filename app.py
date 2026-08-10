@@ -2,7 +2,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, abort, session, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
-from rooms import store, deal_new_hand, Player, TEAM_OF, SEATS
+from rooms import store, deal_new_hand, Player, TEAM_OF, SEATS, next_seat
 from scoring import score_hand, BID_VALUES
 
 app = Flask(__name__)
@@ -112,8 +112,15 @@ def on_play_card(data):
     if seat in room.trick:
         emit('error_msg', {'msg': "You've already played to this trick."})
         return
+    if room.to_play and room.to_play != seat:
+        emit('error_msg', {'msg': f"It's {room.to_play}'s turn to play."})
+        return
     card = hand.pop(idx)
     room.trick[seat] = card
+    if len(room.trick) >= 4:
+        room.to_play = None
+    else:
+        room.to_play = next_seat(seat)
     _broadcast_state(room)
 
 
@@ -128,6 +135,7 @@ def on_recall_card(data):
         return
     card = room.trick.pop(seat)
     room.hands.setdefault(seat, []).append(card)
+    room.to_play = seat
     _broadcast_state(room)
 
 
@@ -144,6 +152,7 @@ def on_take_trick(data):
     room.tricks_taken[team] = room.tricks_taken.get(team, 0) + 1
     room.last_trick = dict(room.trick)
     room.trick = {}
+    room.to_play = None
     _broadcast_state(room)
 
 
@@ -158,6 +167,7 @@ def on_set_bid(data):
         emit('error_msg', {'msg': 'Invalid bid.'})
         return
     room.bid = {'seat': seat, 'tricks': tricks, 'suit': suit, 'value': BID_VALUES[(tricks, suit)]}
+    room.to_play = seat
     _broadcast_state(room)
 
 

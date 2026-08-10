@@ -248,6 +248,23 @@ html, body.table-body { height: 100%; overflow: hidden; }
 .trick-area > .pos-left   { grid-column: 1; grid-row: 2; }
 .trick-area > .pos-right  { grid-column: 3; grid-row: 2; }
 .trick-area > .pos-bottom { grid-column: 2; grid-row: 3; }
+.trick-area > .turn-status {
+  grid-column: 2; grid-row: 2;
+  display: grid; place-items: center;
+  text-align: center;
+  color: rgba(255,255,255,0.7);
+  font-size: 13px; font-weight: 600;
+  padding: 4px;
+  pointer-events: none;
+}
+.trick-area > .turn-status.mine {
+  color: var(--gold);
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+.trick-area > .turn-status.empty { display: none; }
 .trick-slot {
   border: 2px dashed rgba(255,255,255,0.15);
   border-radius: 8px;
@@ -274,6 +291,7 @@ html, body.table-body { height: 100%; overflow: hidden; }
 }
 .bottom-bar button#btn-ns-took { background: var(--gold); color: var(--ink); }
 .bottom-bar button#btn-ew-took { background: var(--team-ew); color: var(--ink); }
+.bottom-bar button:disabled { opacity: 0.35; cursor: not-allowed; }
 .trick-take { display: flex; gap: 8px; align-items: center; }
 
 /* ---------- Seat picker overlay ---------- */
