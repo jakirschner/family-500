@@ -17,7 +17,7 @@
         NS <span id="tc-ns">0</span> · EW <span id="tc-ew">0</span>
       </div>
       <div class="top-right">
-        <span id="room-code">{{ code }}</span>
+        <span id="room-code">Room: {{ code }}</span>
       </div>
     </header>
 
@@ -41,10 +41,6 @@
         <div class="trick-slot pos-right" data-pos="right"></div>
         <div class="trick-slot pos-bottom" data-pos="bottom"></div>
         <div class="turn-status" id="turn-status"></div>
-        <button class="center-deal" id="center-deal">
-          <span class="center-deal-top">You're the dealer</span>
-          <span class="center-deal-bot">DEAL</span>
-        </button>
       </div>
 
       <div class="seat pos-bottom">
@@ -138,9 +134,22 @@
           </label>
         </div>
         <div class="modal-value">Value: <span id="bid-value">140</span> pts</div>
+        <div class="modal-buttons bid-modal-buttons">
+          <button id="btn-bid-reset">Reset bid</button>
+          <div class="modal-buttons-right">
+            <button id="btn-bid-cancel">Cancel</button>
+            <button id="btn-bid-confirm" class="primary">Set bid</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <aside class="kitty-modal" id="deal-modal">
+      <div class="modal-card">
+        <h3>You're the dealer</h3>
+        <div class="muted">Shuffle and deal when everyone is ready.</div>
         <div class="modal-buttons">
-          <button id="btn-bid-cancel">Cancel</button>
-          <button id="btn-bid-confirm" class="primary">Set bid</button>
+          <button id="btn-deal-confirm" class="primary">Deal</button>
         </div>
       </div>
     </aside>

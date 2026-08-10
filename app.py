@@ -223,6 +223,10 @@ def on_set_bid(data):
     if not room or seat not in SEATS or (tricks, suit) not in BID_VALUES:
         emit('error_msg', {'msg': 'Invalid bid.'})
         return
+    caller = room.seat_of(request.sid)
+    if caller != room.dealer:
+        emit('error_msg', {'msg': 'Only the dealer can record the bid.'})
+        return
     was_no_bid = room.bid is None
     if not was_no_bid:
         bidder = room.bid['seat']
@@ -230,6 +234,25 @@ def on_set_bid(data):
             emit('error_msg', {'msg': 'Bid is locked — the kitty has already been collected.'})
             return
     room.bid = {'seat': seat, 'tricks': tricks, 'suit': suit, 'value': BID_VALUES[(tricks, suit)]}
+    room.to_play = None
+    _broadcast_state(room)
+
+
+@socketio.on('clear_bid')
+def on_clear_bid(data):
+    code = (data or {}).get('code', '').upper()
+    room = store.get(code)
+    if not room:
+        return
+    if room.seat_of(request.sid) != room.dealer:
+        emit('error_msg', {'msg': 'Only the dealer can reset the bid.'})
+        return
+    if not room.bid:
+        return
+    if len(room.hands.get(room.bid['seat'], [])) > 10 or room.discarded:
+        emit('error_msg', {'msg': 'Bid is locked — the kitty has already been collected.'})
+        return
+    room.bid = None
     room.to_play = None
     _broadcast_state(room)
 

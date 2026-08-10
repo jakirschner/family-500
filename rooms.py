@@ -96,6 +96,9 @@ class RoomStore:
 
     def create(self) -> Room:
         with self._lock:
+            empty = [c for c, r in self._rooms.items() if not r.players]
+            for c in empty:
+                del self._rooms[c]
             for _ in range(10):
                 code = _new_code()
                 if code not in self._rooms:

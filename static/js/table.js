@@ -156,7 +156,7 @@ socket.on('last_trick', ({ last_trick, taker, can_undo }) => {
 function render() {
   if (!state) return;
 
-  document.getElementById('room-code').textContent = state.code;
+  document.getElementById('room-code').textContent = `Room: ${state.code}`;
   document.getElementById('tc-ns').textContent = state.tricks_taken.NS || 0;
   document.getElementById('tc-ew').textContent = state.tricks_taken.EW || 0;
 
@@ -247,11 +247,10 @@ function renderTakeButtons() {
   const full = state.trick && Object.keys(state.trick).length === 4;
   const takeTrick = document.getElementById('btn-take-trick');
   if (takeTrick) takeTrick.disabled = !full;
-  const deal = document.getElementById('center-deal');
-  if (deal) {
+  const dealModal = document.getElementById('deal-modal');
+  if (dealModal) {
     const isDealer = state.my_seat && state.my_seat === state.dealer;
-    const preDeal = !handIsDealt();
-    deal.classList.toggle('show', !!(isDealer && preDeal));
+    dealModal.classList.toggle('show', !!(isDealer && !handIsDealt()));
   }
   const collectModal = document.getElementById('collect-kitty-modal');
   if (collectModal) collectModal.classList.toggle('show', canCollectKitty());
@@ -301,6 +300,7 @@ function maybeAutoOpenBid() {
 }
 
 function openBidModal() {
+  document.getElementById('btn-bid-reset').style.display = state?.bid ? '' : 'none';
   bidSeat.innerHTML = '';
   for (const s of SEATS) {
     const opt = document.createElement('option');
@@ -327,6 +327,8 @@ function renderBid() {
   } else {
     disp.textContent = '— set bid —';
   }
+  const btnBid = document.getElementById('btn-bid');
+  if (btnBid) btnBid.style.display = (state.my_seat === state.dealer) ? '' : 'none';
 }
 
 function renderBadges() {
@@ -493,7 +495,7 @@ document.querySelectorAll('.seat-btns button').forEach(btn => {
 });
 
 // ------- top-level buttons -------
-document.getElementById('center-deal').addEventListener('click', () => {
+document.getElementById('btn-deal-confirm').addEventListener('click', () => {
   socket.emit('deal', { code });
 });
 document.getElementById('btn-collect-kitty-confirm').addEventListener('click', () => {
@@ -552,7 +554,17 @@ function updateBidValue() {
 bidTricks.addEventListener('change', updateBidValue);
 bidSuit.addEventListener('change', updateBidValue);
 
-document.getElementById('btn-bid').addEventListener('click', openBidModal);
+document.getElementById('btn-bid').addEventListener('click', () => {
+  if (state?.bid && (state.kitty_size || 0) === 0 && handIsDealt()) {
+    showToast('Bidding is locked — the kitty has been collected.', { type: 'error' });
+    return;
+  }
+  openBidModal();
+});
+document.getElementById('btn-bid-reset').addEventListener('click', () => {
+  socket.emit('clear_bid', { code });
+  bidModal.classList.remove('show');
+});
 document.getElementById('btn-bid-cancel').addEventListener('click', () => {
   bidModal.classList.remove('show');
 });
