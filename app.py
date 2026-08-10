@@ -173,10 +173,14 @@ def on_recall_card(data):
 @socketio.on('take_trick')
 def on_take_trick(data):
     code = (data or {}).get('code', '').upper()
-    team = (data or {}).get('team')  # 'NS' or 'EW'
     room = store.get(code)
-    if not room or team not in ('NS', 'EW'):
+    if not room:
         return
+    seat = room.seat_of(request.sid)
+    if not seat:
+        emit('error_msg', {'msg': 'You must be seated to take a trick.'})
+        return
+    team = TEAM_OF[seat]
     if len(room.trick) != 4:
         emit('error_msg', {'msg': 'Trick is not complete yet.'})
         return

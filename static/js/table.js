@@ -239,10 +239,8 @@ function renderStatus() {
 
 function renderTakeButtons() {
   const full = state.trick && Object.keys(state.trick).length === 4;
-  for (const id of ['btn-ns-took', 'btn-ew-took']) {
-    const btn = document.getElementById(id);
-    if (btn) btn.disabled = !full;
-  }
+  const takeTrick = document.getElementById('btn-take-trick');
+  if (takeTrick) takeTrick.disabled = !full;
   const deal = document.getElementById('center-deal');
   if (deal) {
     const isDealer = state.my_seat && state.my_seat === state.dealer;
@@ -520,11 +518,8 @@ document.getElementById('btn-review-discards').addEventListener('click', () => {
 document.getElementById('btn-discard-review-close').addEventListener('click', () => {
   document.getElementById('discard-review-modal').classList.remove('show');
 });
-document.getElementById('btn-ns-took').addEventListener('click', () => {
-  socket.emit('take_trick', { code, team: 'NS' });
-});
-document.getElementById('btn-ew-took').addEventListener('click', () => {
-  socket.emit('take_trick', { code, team: 'EW' });
+document.getElementById('btn-take-trick').addEventListener('click', () => {
+  socket.emit('take_trick', { code });
 });
 document.getElementById('btn-review').addEventListener('click', () => {
   socket.emit('review_last_trick', { code });

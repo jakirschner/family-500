@@ -46,8 +46,8 @@
           <span class="center-deal-bot">DEAL</span>
         </button>
         <button class="center-deal" id="center-collect-kitty">
-          <span class="center-deal-top">You won the bid</span>
-          <span class="center-deal-bot">COLLECT KITTY</span>
+          <span class="center-deal-top">Kitty is ready</span>
+          <span class="center-deal-bot">COLLECT</span>
         </button>
         <button class="center-deal" id="center-discard">
           <span class="center-deal-top" id="center-discard-top">You won the bid — pick 5 to discard</span>
@@ -63,9 +63,7 @@
 
     <footer class="bottom-bar">
       <div class="trick-take">
-        Take trick:
-        <button id="btn-ns-took">NS took</button>
-        <button id="btn-ew-took">EW took</button>
+        <button id="btn-take-trick">Take Trick</button>
       </div>
       <div>
         <button id="btn-redeal">Redeal (no bid)</button>
@@ -82,7 +80,7 @@
         <h3>Scorecard</h3>
         <div class="score-header-right">
           <div class="target">first to 1000</div>
-          <button id="btn-collapse-score" title="Hide scorecard">◀</button>
+          <button id="btn-collapse-score" title="Hide scorecard">▶</button>
         </div>
       </header>
       <div class="score-totals">
@@ -201,7 +199,7 @@
       </div>
     </aside>
   </div>
-  <button id="btn-score-tab" class="score-tab" style="display:none">Score ▶</button>
+  <button id="btn-score-tab" class="score-tab" style="display:none">◀ Score</button>
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="{{ url_for('static', filename='js/table.js') }}"></script>

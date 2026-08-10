@@ -399,8 +399,7 @@ html, body.table-body { height: 100%; overflow: hidden; }
   border: none; border-radius: 20px; cursor: pointer;
   background: rgba(255,255,255,0.15); color: var(--paper);
 }
-.bottom-bar button#btn-ns-took { background: var(--gold); color: var(--ink); }
-.bottom-bar button#btn-ew-took { background: var(--team-ew); color: var(--ink); }
+.bottom-bar button#btn-take-trick { background: var(--gold); color: var(--ink); }
 .bottom-bar button:disabled { opacity: 0.35; cursor: not-allowed; }
 .trick-take { display: flex; gap: 8px; align-items: center; }
 
