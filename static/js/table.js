@@ -97,6 +97,20 @@ function playSound(name) {
 
 socket.on('sound', ({ name }) => { playSound(name); });
 
+const FONT_SIZES = ['normal', 'large', 'xlarge'];
+const FONT_LABELS = { normal: 'A', large: 'A+', xlarge: 'A++' };
+let fontSizeIdx = Math.max(0, FONT_SIZES.indexOf(localStorage.getItem('fontsize500') || 'normal'));
+function applyFontSize() {
+  document.body.dataset.fontsize = FONT_SIZES[fontSizeIdx];
+  document.getElementById('btn-font-size').textContent = FONT_LABELS[FONT_SIZES[fontSizeIdx]];
+}
+applyFontSize();
+document.getElementById('btn-font-size').addEventListener('click', () => {
+  fontSizeIdx = (fontSizeIdx + 1) % FONT_SIZES.length;
+  localStorage.setItem('fontsize500', FONT_SIZES[fontSizeIdx]);
+  applyFontSize();
+});
+
 const muteBtn = document.getElementById('btn-mute');
 function updateMuteBtn() {
   muteBtn.textContent = isMuted ? 'Unmute' : 'Mute';
@@ -568,10 +582,12 @@ function renderScorecard() {
   body.innerHTML = '';
   for (const h of state.history || []) {
     const tr = document.createElement('tr');
-    const bidTxt = `${h.bidder_team} ${h.bid.tricks} ${SUIT_GLYPH[h.bid.suit] || h.bid.suit}`;
+    const dealerName = (state.seats && state.seats[h.dealer]) || h.dealer || '';
+    const bidderName = (state.seats && state.seats[h.bid.seat]) || h.bid.seat;
+    const bidTxt = `${bidderName} ${h.bid.tricks}${SUIT_GLYPH[h.bid.suit] || h.bid.suit}`;
     const ns = h.delta.NS >= 0 ? `+${h.delta.NS}` : String(h.delta.NS).replace('-', '−');
     const ew = h.delta.EW >= 0 ? `+${h.delta.EW}` : String(h.delta.EW).replace('-', '−');
-    tr.innerHTML = `<td>${h.dealer || ''}</td><td>${bidTxt}</td>` +
+    tr.innerHTML = `<td>${dealerName}</td><td>${bidTxt}</td>` +
                    `<td class="v ns ${h.delta.NS < 0 ? 'neg' : ''}">${ns}</td>` +
                    `<td class="v ew ${h.delta.EW < 0 ? 'neg' : ''}">${ew}</td>`;
     body.appendChild(tr);
