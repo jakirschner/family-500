@@ -187,6 +187,7 @@ function runDealerSpinner(finalSeat, seatNames) {
 }
 
 socket.on('game_won', ({ winner, scores, seats }) => {
+  document.getElementById('deal-modal').classList.remove('show');
   const myTeam = state && state.my_team;
   const won = myTeam === winner;
   const winnerSeats = winner === 'NS' ? ['N', 'S'] : ['E', 'W'];
