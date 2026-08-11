@@ -189,19 +189,23 @@ function runDealerSpinner(finalSeat, seatNames) {
 socket.on('game_won', ({ winner, scores, seats }) => {
   const myTeam = state && state.my_team;
   const won = myTeam === winner;
+  const winnerSeats = winner === 'NS' ? ['N', 'S'] : ['E', 'W'];
+  const winnerNames = winnerSeats.map(s => (seats && seats[s]) || s);
+  const winnerStr = `${winnerNames[0]} and ${winnerNames[1]}`;
   const headline = document.getElementById('win-headline');
   const message = document.getElementById('win-message');
-  headline.textContent = won ? 'You win!' : `${winner} wins!`;
-  if (won && state && state.my_seat) {
-    const partnerSeat = { N: 'S', S: 'N', E: 'W', W: 'E' }[state.my_seat];
+  if (won) {
+    const partnerSeat = { N: 'S', S: 'N', E: 'W', W: 'E' }[state && state.my_seat];
     const partnerName = (seats && seats[partnerSeat]) || partnerSeat;
+    headline.textContent = 'You win!';
     message.textContent = `You and ${partnerName} win! Congratulations!`;
   } else {
+    headline.textContent = `${winnerStr} win!`;
     message.textContent = 'Better luck next time!';
   }
   for (const team of ['NS', 'EW']) {
     document.getElementById(`win-pts-${team.toLowerCase()}`).textContent = scores[team] || 0;
-    document.getElementById(`win-team-${team.toLowerCase()}`).textContent = team;
+    document.getElementById(`win-team-${team.toLowerCase()}`).textContent = displayTeam(team);
     document.getElementById(`win-score-${team.toLowerCase()}`)?.classList.toggle('winner', team === winner);
   }
   document.getElementById('win-modal').classList.add('show');
@@ -458,13 +462,14 @@ function renderBadges() {
     if (state.my_seat && p === 'bottom') {
       el.textContent = `YOU · ${label} · ${seat} · TEAM ${state.my_team}${dealerMark}`;
     } else {
-      const teamTag = seats[seat] ? ` (${teamOf(seat)})` : '';
+      const teamTag = seats[seat] ? ` (${displayTeam(teamOf(seat))})` : '';
       el.textContent = `${seat} · ${label}${teamTag}${dealerMark}`;
     }
   }
 }
 
 function teamOf(seat) { return (seat === 'N' || seat === 'S') ? 'NS' : 'EW'; }
+function displayTeam(t) { return t === 'EW' ? 'WE' : t; }
 
 function updateHandOrder(cards) {
   const currentSet = new Set(cards.map(cardKey));
@@ -755,7 +760,7 @@ document.getElementById('btn-end-hand').addEventListener('click', () => {
   }
   const { seat, tricks, suit, value } = state.bid;
   const team = teamOf(seat);
-  endBidSummary.textContent = `${team} bid ${tricks} ${SUIT_GLYPH[suit] || suit} (${value})`;
+  endBidSummary.textContent = `${displayTeam(team)} bid ${tricks} ${SUIT_GLYPH[suit] || suit} (${value})`;
   endTricks.value = String(state.tricks_taken[team] || tricks);
   endModal.classList.add('show');
 });
