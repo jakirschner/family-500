@@ -179,6 +179,7 @@ function runDealerSpinner(finalSeat, seatNames) {
       setTimeout(() => {
         overlay.classList.remove('show');
         spinnerShowing = false;
+        renderTakeButtons();
       }, 2200);
     }
   };
