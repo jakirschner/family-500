@@ -527,7 +527,7 @@ body[data-fontsize="large"] .card .suit { font-size: clamp(26px, 2.9vw, 34px); }
 body[data-fontsize="large"] .bid-panel { font-size: 18px; padding: 11px 22px; }
 body[data-fontsize="large"] .score-rows { font-size: 20px; }
 body[data-fontsize="large"] .team-total { font-size: 26px; }
-body[data-fontsize="large"] .turn-status { font-size: 20px; }
+body[data-fontsize="large"] .turn-status { font-size: 15px; white-space: normal; }
 body[data-fontsize="large"] .badge { font-size: 14px; }
 body[data-fontsize="large"] .bottom-bar button { font-size: 16px; }
 
@@ -536,6 +536,6 @@ body[data-fontsize="xlarge"] .card .suit { font-size: clamp(30px, 3.4vw, 40px); 
 body[data-fontsize="xlarge"] .bid-panel { font-size: 20px; padding: 12px 24px; }
 body[data-fontsize="xlarge"] .score-rows { font-size: 22px; }
 body[data-fontsize="xlarge"] .team-total { font-size: 29px; }
-body[data-fontsize="xlarge"] .turn-status { font-size: 22px; }
+body[data-fontsize="xlarge"] .turn-status { font-size: 15px; white-space: normal; }
 body[data-fontsize="xlarge"] .badge { font-size: 15px; }
 body[data-fontsize="xlarge"] .bottom-bar button { font-size: 17px; }

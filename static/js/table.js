@@ -136,7 +136,10 @@ socket.on('state', (s) => {
   render();
 });
 
+let spinnerShowing = false;
+
 socket.on('first_dealer', ({ seat, seats }) => {
+  document.getElementById('win-modal').classList.remove('show');
   runDealerSpinner(seat, seats || {});
 });
 
@@ -152,6 +155,7 @@ function runDealerSpinner(finalSeat, seatNames) {
   const resultEl = document.getElementById('spinner-result');
   resultEl.textContent = '';
   overlay.classList.add('show');
+  spinnerShowing = true;
 
   const finalIdx = order.indexOf(finalSeat);
   const baseSteps = 13;
@@ -174,6 +178,7 @@ function runDealerSpinner(finalSeat, seatNames) {
       resultEl.textContent = `${name} (${finalSeat}) deals first`;
       setTimeout(() => {
         overlay.classList.remove('show');
+        spinnerShowing = false;
       }, 2200);
     }
   };
@@ -359,7 +364,7 @@ function renderTakeButtons() {
   const dealModal = document.getElementById('deal-modal');
   if (dealModal) {
     const isDealer = state.my_seat && state.my_seat === state.dealer;
-    dealModal.classList.toggle('show', !!(isDealer && !handIsDealt()));
+    dealModal.classList.toggle('show', !!(isDealer && !handIsDealt() && !spinnerShowing));
   }
   const collectModal = document.getElementById('collect-kitty-modal');
   if (collectModal) collectModal.classList.toggle('show', canCollectKitty());
