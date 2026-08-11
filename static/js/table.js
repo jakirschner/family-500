@@ -369,7 +369,8 @@ function renderTakeButtons() {
   const dealModal = document.getElementById('deal-modal');
   if (dealModal) {
     const isDealer = state.my_seat && state.my_seat === state.dealer;
-    dealModal.classList.toggle('show', !!(isDealer && !handIsDealt() && !spinnerShowing));
+    const winModalOpen = document.getElementById('win-modal').classList.contains('show');
+    dealModal.classList.toggle('show', !!(isDealer && !handIsDealt() && !spinnerShowing && !winModalOpen));
   }
   const collectModal = document.getElementById('collect-kitty-modal');
   if (collectModal) collectModal.classList.toggle('show', canCollectKitty());
@@ -460,7 +461,7 @@ function renderBadges() {
     const label = seats[seat] || 'empty';
     const dealerMark = state.dealer === seat ? ' · D' : '';
     if (state.my_seat && p === 'bottom') {
-      el.textContent = `YOU · ${label} · ${seat} · TEAM ${state.my_team}${dealerMark}`;
+      el.textContent = `YOU · ${label} · ${seat} · TEAM ${displayTeam(state.my_team)}${dealerMark}`;
     } else {
       const teamTag = seats[seat] ? ` (${displayTeam(teamOf(seat))})` : '';
       el.textContent = `${seat} · ${label}${teamTag}${dealerMark}`;
