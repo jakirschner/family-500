@@ -239,8 +239,8 @@ def on_set_bid(data):
         emit('error_msg', {'msg': 'Invalid bid.'})
         return
     caller = room.seat_of(request.sid)
-    if caller != room.dealer:
-        emit('error_msg', {'msg': 'Only the dealer can record the bid.'})
+    if caller != 'N':
+        emit('error_msg', {'msg': 'Only the scorekeeper (North) can record the bid.'})
         return
     was_no_bid = room.bid is None
     if not was_no_bid:
@@ -259,8 +259,8 @@ def on_clear_bid(data):
     room = store.get(code)
     if not room:
         return
-    if room.seat_of(request.sid) != room.dealer:
-        emit('error_msg', {'msg': 'Only the dealer can reset the bid.'})
+    if room.seat_of(request.sid) != 'N':
+        emit('error_msg', {'msg': 'Only the scorekeeper (North) can reset the bid.'})
         return
     if not room.bid:
         return

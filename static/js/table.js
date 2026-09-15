@@ -412,9 +412,9 @@ function maybeShowFirstBidder() {
 
 function maybeAutoOpenBid() {
   if (!state.my_seat) return;
-  if (!state.dealer || !state.hand_id) return;
+  if (!state.scorekeeper || !state.hand_id) return;
   if (!handIsDealt() || state.bid) return;
-  if (state.my_seat !== state.dealer) return;
+  if (state.my_seat !== state.scorekeeper) return;
   if (bidAutoOpenedHand === state.hand_id) return;
   bidAutoOpenedHand = state.hand_id;
   openBidModal();
@@ -449,7 +449,7 @@ function renderBid() {
     disp.textContent = '— set bid —';
   }
   const btnBid = document.getElementById('btn-bid');
-  if (btnBid) btnBid.classList.toggle('static', state.my_seat !== state.dealer);
+  if (btnBid) btnBid.classList.toggle('static', state.my_seat !== state.scorekeeper);
 }
 
 function renderBadges() {
@@ -461,11 +461,12 @@ function renderBadges() {
     const seat = pos[p];
     const label = seats[seat] || 'empty';
     const dealerMark = state.dealer === seat ? ' · D' : '';
+    const skMark = seat === state.scorekeeper ? ' · SK' : '';
     if (state.my_seat && p === 'bottom') {
-      el.textContent = `YOU · ${label} · ${seat} · TEAM ${displayTeam(state.my_team)}${dealerMark}`;
+      el.textContent = `YOU · ${label} · ${seat} · TEAM ${displayTeam(state.my_team)}${dealerMark}${skMark}`;
     } else {
       const teamTag = seats[seat] ? ` (${displayTeam(teamOf(seat))})` : '';
-      el.textContent = `${seat} · ${label}${teamTag}${dealerMark}`;
+      el.textContent = `${seat} · ${label}${teamTag}${dealerMark}${skMark}`;
     }
   }
 }

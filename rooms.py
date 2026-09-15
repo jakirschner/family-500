@@ -75,6 +75,7 @@ class Room:
             'seats': seat_players,
             'open_seats': self.open_seats(),
             'dealer': self.dealer,
+            'scorekeeper': 'N',
             'my_hand': self.hands.get(my_seat, []) if my_seat else [],
             'hand_counts': {s: len(self.hands.get(s, [])) for s in SEATS},
             'trick': self.trick,
