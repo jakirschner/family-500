@@ -398,6 +398,8 @@ function renderTakeButtons() {
                          && !anyCardPlayedThisHand());
     rd.style.display = canReview ? '' : 'none';
   }
+  const endHand = document.getElementById('btn-end-hand');
+  if (endHand) endHand.style.display = state.my_seat === state.scorekeeper ? '' : 'none';
 }
 
 function maybeShowFirstBidder() {
