@@ -757,6 +757,10 @@ const endTricks = document.getElementById('end-tricks');
 const endBidSummary = document.getElementById('end-bid-summary');
 
 document.getElementById('btn-end-hand').addEventListener('click', () => {
+  if (state?.my_seat !== state?.scorekeeper) {
+    showToast('Only the scorekeeper (North) can end the hand.', { type: 'error' });
+    return;
+  }
   if (!state?.bid) {
     showToast('Set the winning bid first (click the bid panel at the top).', { type: 'error' });
     return;

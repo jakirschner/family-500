@@ -382,6 +382,9 @@ def on_end_hand(data):
     if not room or not room.bid:
         emit('error_msg', {'msg': 'No bid set for this hand.'})
         return
+    if room.seat_of(request.sid) != 'N':
+        emit('error_msg', {'msg': 'Only the scorekeeper (North) can end the hand.'})
+        return
     if not isinstance(bidder_tricks_taken, int) or not 0 <= bidder_tricks_taken <= 10:
         emit('error_msg', {'msg': 'Bidder tricks must be 0..10.'})
         return
