@@ -768,9 +768,10 @@ document.getElementById('btn-end-hand').addEventListener('click', () => {
     return;
   }
   const { seat, tricks, suit, value } = state.bid;
-  const team = teamOf(seat);
-  endBidSummary.textContent = `${displayTeam(team)} bid ${tricks} ${SUIT_GLYPH[suit] || suit} (${value})`;
-  endTricks.value = String(state.tricks_taken[team] || tricks);
+  const biddingTeam = teamOf(seat);
+  const nonBiddingTeam = biddingTeam === 'NS' ? 'EW' : 'NS';
+  endBidSummary.textContent = `${displayTeam(biddingTeam)} bid ${tricks} ${SUIT_GLYPH[suit] || suit} (${value})`;
+  endTricks.value = String(state.tricks_taken[nonBiddingTeam] || 0);
   endModal.classList.add('show');
 });
 document.getElementById('btn-end-cancel').addEventListener('click', () => {
@@ -781,9 +782,10 @@ document.getElementById('btn-new-game').addEventListener('click', () => {
   document.getElementById('win-modal').classList.remove('show');
 });
 document.getElementById('btn-end-confirm').addEventListener('click', () => {
+  const nonBidderTricks = parseInt(endTricks.value, 10);
   socket.emit('end_hand', {
     code,
-    bidder_tricks_taken: parseInt(endTricks.value, 10),
+    bidder_tricks_taken: 10 - nonBidderTricks,
   });
   endModal.classList.remove('show');
 });
